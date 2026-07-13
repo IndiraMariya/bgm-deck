@@ -1,0 +1,12 @@
+# Local secret config — never commit the real key
+config.js
+
+# Ambient audio (optional: uncomment if you don't want to commit large files)
+# audio/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
