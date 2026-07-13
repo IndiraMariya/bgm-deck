@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>bgm deck</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
   :root {
     --bg: #0a0b0d;
@@ -17,6 +18,8 @@
     --brush: rgba(255,255,255,.03);
     --chrome-hi: #cfd4db;
     --chrome-lo: #6b7079;
+    --wordmark-1: #ffffff; --wordmark-2: #8b93a0;
+    --btn-border: rgba(0,0,0,.5);
     --ink: #eef1f5;
     --ink-soft: #aab0b8;
     --muted: #767c85;
@@ -37,22 +40,24 @@
     --bg-2: #eceef1;
     --panel: #f4f6f8;
     --panel-hi: #ffffff;
-    --metal-1: #f0f2f5;
-    --metal-2: #c8ccd2;
-    --metal-edge: rgba(255,255,255,.9);
-    --metal-shadow: rgba(120,130,145,.5);
-    --brush: rgba(0,0,0,.03);
+    --metal-1: #ffffff;
+    --metal-2: #dfe3ea;
+    --metal-edge: rgba(255,255,255,1);
+    --metal-shadow: rgba(120,132,150,.4);
+    --brush: rgba(0,0,0,.025);
     --chrome-hi: #ffffff;
-    --chrome-lo: #9aa1ab;
-    --ink: #23272e;
-    --ink-soft: #4c525b;
-    --muted: #7b828c;
-    --line: #cdd2d9;
-    --accent: #2f8fbf;
-    --accent-deep: #1f6d95;
-    --accent-glow: rgba(47,143,191,.4);
-    --lcd-bg-1: #cfe6ef; --lcd-bg-2: #aacbdb;
-    --page-1: #eceef1; --page-2: #dfe2e7; --page-3: #cfd3d9;
+    --chrome-lo: #8a919d;
+    --wordmark-1: #5a6270; --wordmark-2: #23303f;
+    --ink: #2a2f38;
+    --ink-soft: #454b57;
+    --muted: #6b727d;
+    --line: #e6e9ee;
+    --btn-border: rgba(90,100,120,.28);
+    --accent: #2b39ff;      /* ultramarine LED */
+    --accent-deep: #1a24c9;
+    --accent-glow: rgba(43,57,255,.45);
+    --lcd-bg-1: #eef0ff; --lcd-bg-2: #dfe2ff;
+    --page-1: #fbfcfe; --page-2: #f2f4f8; --page-3: #e8ebf1;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -86,12 +91,27 @@
     display: flex; align-items: center; justify-content: space-between; gap: 18px;
     flex-wrap: wrap;
     transition: background .3s ease, box-shadow .3s ease;
+    overflow: hidden;
   }
   /* subtle top sheen line across the plate */
   header.deckbar::before {
     content: ""; position: absolute; left: 12px; right: 12px; top: 4px; height: 1px; border-radius: 1px;
     background: linear-gradient(90deg, transparent, var(--metal-edge) 30%, var(--metal-edge) 70%, transparent);
-    pointer-events: none;
+    pointer-events: none; z-index: 2;
+  }
+  /* cool accent glow bleeding in from the left edge */
+  header.deckbar::after {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 40%;
+    background: radial-gradient(120% 90% at 0% 50%, var(--accent-glow), transparent 70%);
+    opacity: .5; pointer-events: none; z-index: 0;
+  }
+  header.deckbar > * { position: relative; z-index: 1; }
+  /* thin lit accent rule along the very bottom of the plate */
+  .deckbar-underline {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 2px; z-index: 2;
+    background: linear-gradient(90deg, transparent, var(--accent) 20%, var(--accent) 80%, transparent);
+    box-shadow: 0 0 10px var(--accent-glow);
+    opacity: .8; pointer-events: none;
   }
   .brand { display: flex; align-items: center; gap: 14px; }
   .brand .led {
@@ -105,9 +125,9 @@
     font-family: var(--cond);
     font-size: 30px; font-weight: 700; letter-spacing: 0.08em;
     text-transform: lowercase;
-    background: linear-gradient(180deg, #fff, #9aa0a8);
+    background: linear-gradient(180deg, var(--wordmark-1), var(--wordmark-2));
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    text-shadow: 0 1px 0 rgba(0,0,0,.4);
+    text-shadow: 0 1px 1px var(--metal-shadow);
   }
   .brand .tag {
     font-family: var(--cond); font-size: 11px; letter-spacing: 0.26em;
@@ -118,8 +138,8 @@
   .count-lcd {
     font-family: var(--cond); font-size: 12px; letter-spacing: 0.12em;
     color: var(--accent); padding: 5px 12px; border-radius: 5px;
-    background: linear-gradient(180deg, #0c0f12, #05070a);
-    box-shadow: inset 0 0 8px rgba(0,0,0,.9), inset 0 0 0 1px rgba(87,194,232,.14);
+    background: linear-gradient(180deg, var(--lcd-bg-1), var(--lcd-bg-2));
+    box-shadow: inset 0 0 8px var(--metal-shadow), inset 0 0 0 1px var(--accent-glow);
     text-shadow: 0 0 6px var(--accent-glow);
     white-space: nowrap;
   }
@@ -128,7 +148,7 @@
     font-family: var(--cond); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--ink); text-decoration: none;
     padding: 9px 18px; border-radius: 8px; cursor: pointer;
-    border: 1px solid rgba(0,0,0,.5);
+    border: 1px solid var(--btn-border);
     background: linear-gradient(180deg, var(--panel-hi), var(--metal-2));
     box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 2px 5px rgba(0,0,0,.5);
     transition: filter .15s ease, transform .1s ease;
@@ -165,7 +185,7 @@
   .channels { display: grid; gap: 12px; }
   .chan {
     display: grid; grid-template-columns: 42px 1fr 72px; align-items: center; gap: 14px;
-    padding: 12px 16px; border-radius: 12px; border: 1px solid rgba(0,0,0,.4);
+    padding: 12px 16px; border-radius: 12px; border: 1px solid var(--btn-border);
     background:
       repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 2px, transparent 2px 4px),
       linear-gradient(180deg, var(--panel-hi), var(--metal-2));
@@ -192,7 +212,7 @@
   .ambient input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
     background: radial-gradient(circle at 50% 35%, #d7dce2, #9aa0a8 60%, #6b7079);
-    box-shadow: 0 0 8px var(--accent-glow), 0 1px 3px rgba(0,0,0,.6); border: 1px solid rgba(0,0,0,.4);
+    box-shadow: 0 0 8px var(--accent-glow), 0 1px 3px rgba(0,0,0,.6); border: 1px solid var(--btn-border);
   }
   .chan .vnum { font-family: var(--cond); font-size: 12px; color: var(--accent); text-align: right; text-shadow: 0 0 6px var(--accent-glow); }
   .chan .vwrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -358,7 +378,7 @@
   .deck-top .lcd .state { font-size: 10px; letter-spacing: 0.24em; color: var(--accent-deep); text-transform: uppercase; margin-top: 2px; }
   .eject {
     width: 40px; height: 40px; border-radius: 8px; cursor: pointer; flex-shrink: 0;
-    border: 1px solid rgba(0,0,0,.5);
+    border: 1px solid var(--btn-border);
     background: linear-gradient(180deg, var(--panel-hi), var(--metal-2));
     box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 2px 5px rgba(0,0,0,.5);
     display: flex; align-items: center; justify-content: center;
@@ -397,7 +417,7 @@
   }
   .mini-player button {
     width: 36px; height: 36px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
-    border: 1px solid rgba(0,0,0,.5);
+    border: 1px solid var(--btn-border);
     background: linear-gradient(180deg, var(--panel-hi), var(--metal-2));
     box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 2px 4px rgba(0,0,0,.5);
     display: flex; align-items: center; justify-content: center;
@@ -493,7 +513,7 @@
   /* transport controls */
   .transport { display: flex; align-items: center; justify-content: center; gap: 14px; }
   .transport button {
-    border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,.5);
+    border-radius: 50%; cursor: pointer; border: 1px solid var(--btn-border);
     background: linear-gradient(180deg, var(--panel-hi), var(--metal-2));
     box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 3px 6px rgba(0,0,0,.5);
     display: flex; align-items: center; justify-content: center;
@@ -566,6 +586,7 @@
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play all
         </button>
       </div>
+      <div class="deckbar-underline"></div>
     </header>
 
     <p class="status" id="status"></p>
