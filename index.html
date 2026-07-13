@@ -12,6 +12,9 @@
     --panel-hi: #262a31;
     --metal-1: #3a3f47;
     --metal-2: #23262c;
+    --metal-edge: rgba(255,255,255,.18);
+    --metal-shadow: rgba(0,0,0,.5);
+    --brush: rgba(255,255,255,.03);
     --chrome-hi: #cfd4db;
     --chrome-lo: #6b7079;
     --ink: #eef1f5;
@@ -21,20 +24,47 @@
     --accent: #57c2e8;      /* cool chrome-blue LED */
     --accent-deep: #2f8fbf;
     --accent-glow: rgba(87,194,232,.55);
+    --lcd-bg-1: #0b1a20; --lcd-bg-2: #04090c;
+    --page-1: #191c21; --page-2: #0a0b0d; --page-3: #050506;
     --radius: 14px;
     --sans: "Segoe UI", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
     --cond: "Bahnschrift", "DIN Alternate", "Arial Narrow", var(--sans);
+  }
+
+  /* ---------- Light mode: warm chrome / silver ---------- */
+  [data-theme="light"] {
+    --bg: #dfe2e7;
+    --bg-2: #eceef1;
+    --panel: #f4f6f8;
+    --panel-hi: #ffffff;
+    --metal-1: #f0f2f5;
+    --metal-2: #c8ccd2;
+    --metal-edge: rgba(255,255,255,.9);
+    --metal-shadow: rgba(120,130,145,.5);
+    --brush: rgba(0,0,0,.03);
+    --chrome-hi: #ffffff;
+    --chrome-lo: #9aa1ab;
+    --ink: #23272e;
+    --ink-soft: #4c525b;
+    --muted: #7b828c;
+    --line: #cdd2d9;
+    --accent: #2f8fbf;
+    --accent-deep: #1f6d95;
+    --accent-glow: rgba(47,143,191,.4);
+    --lcd-bg-1: #cfe6ef; --lcd-bg-2: #aacbdb;
+    --page-1: #eceef1; --page-2: #dfe2e7; --page-3: #cfd3d9;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { height: 100%; }
   body {
     background:
-      radial-gradient(120% 80% at 50% -10%, #191c21 0%, var(--bg) 60%, #050506 100%) fixed;
+      radial-gradient(120% 80% at 50% -10%, var(--page-1) 0%, var(--page-2) 60%, var(--page-3) 100%) fixed;
     color: var(--ink);
     font-family: var(--sans);
     -webkit-font-smoothing: antialiased;
     line-height: 1.5;
+    transition: color .3s ease;
   }
 
   .app { max-width: 1120px; margin: 0 auto; padding: 34px 26px 120px; }
@@ -46,14 +76,22 @@
     padding: 18px 22px;
     margin-bottom: 30px;
     background:
-      repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 2px, transparent 2px 4px),
-      linear-gradient(180deg, var(--metal-1), var(--metal-2));
+      repeating-linear-gradient(90deg, var(--brush) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 2px),
+      linear-gradient(180deg, var(--metal-1), var(--metal-2) 55%, var(--metal-1));
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.18),
-      inset 0 -1px 0 rgba(0,0,0,.5),
-      0 6px 20px rgba(0,0,0,.5);
+      inset 0 1px 0 var(--metal-edge),
+      inset 0 -1px 0 var(--metal-shadow),
+      0 6px 20px var(--metal-shadow);
     display: flex; align-items: center; justify-content: space-between; gap: 18px;
     flex-wrap: wrap;
+    transition: background .3s ease, box-shadow .3s ease;
+  }
+  /* subtle top sheen line across the plate */
+  header.deckbar::before {
+    content: ""; position: absolute; left: 12px; right: 12px; top: 4px; height: 1px; border-radius: 1px;
+    background: linear-gradient(90deg, transparent, var(--metal-edge) 30%, var(--metal-edge) 70%, transparent);
+    pointer-events: none;
   }
   .brand { display: flex; align-items: center; gap: 14px; }
   .brand .led {
@@ -518,6 +556,9 @@
       </div>
       <div class="deck-actions">
         <span class="count-lcd" id="count-label">-- MIXES</span>
+        <button class="btn-metal" id="themeBtn" title="Toggle light / dark">
+          <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9 7 7 0 01-9-9z"/></svg>
+        </button>
         <button class="btn-metal" id="ambientBtn" title="Toggle ambient mixer">
           <svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg> Ambient
         </button>
@@ -991,14 +1032,34 @@
   const ambState = {};
   const AMB_LS = "bgm_ambient_v1";
   let ambSaved = {}; try { ambSaved = JSON.parse(localStorage.getItem(AMB_LS)) || {}; } catch(e){}
-  let ambMaster = ambSaved.master != null ? ambSaved.master : 0.8;
+  let ambMaster = ambSaved.master != null ? ambSaved.master : 1.0;
   let ambPlaying = false, ambBuilt = false, ambMissing = 0;
+  // Master can push beyond unity for a much louder ceiling via Web Audio gain.
+  const AMB_MAX_GAIN = 3.0;
 
   masterEl.value = Math.round(ambMaster*100); masterNumEl.textContent = masterEl.value;
   masterEl.style.setProperty("--v", masterEl.value + "%");
 
   function ambPersist(){ const o={master:ambMaster}; Object.keys(ambState).forEach(k=>o[k]=ambState[k].vol); try{ localStorage.setItem(AMB_LS, JSON.stringify(o)); }catch(e){} }
-  function ambApply(k){ const s=ambState[k]; if(s&&s.audio) s.audio.volume = Math.max(0, Math.min(1, s.vol*ambMaster)); }
+  // Route each element through a Web Audio gain node the first time we need volume,
+  // so the effective gain can exceed 1.0 (plain <audio>.volume caps at 1.0).
+  function ambEnsureGain(s){
+    if (s.gain || s.noWebAudio) return;
+    const ctx = ac(); if (!ctx) { s.noWebAudio = true; return; }
+    try {
+      s.srcNode = ctx.createMediaElementSource(s.audio);
+      s.gain = ctx.createGain();
+      s.srcNode.connect(s.gain); s.gain.connect(ctx.destination);
+      s.audio.volume = 1; // element at unity; gain node does the real work
+    } catch(e) { s.noWebAudio = true; }
+  }
+  function ambApply(k){
+    const s = ambState[k]; if(!s || !s.audio) return;
+    const target = s.vol * ambMaster * AMB_MAX_GAIN;
+    ambEnsureGain(s);
+    if (s.gain) { s.gain.gain.value = Math.max(0, target); }
+    else { s.audio.volume = Math.max(0, Math.min(1, s.vol * ambMaster)); } // fallback, capped at 1
+  }
   function ambSetIcon(){ mtIcon.innerHTML = `<path d="${ambPlaying?AMB_ICON_PAUSE:AMB_ICON_PLAY}"/>`; }
 
   function buildAmbient(){
@@ -1064,7 +1125,27 @@
     if (!showing) { refreshNote(); ambPanel.scrollIntoView({behavior:"smooth", block:"nearest"}); }
   });
 
+  /* ---------------- theme toggle ---------------- */
+  const themeIcon = document.getElementById("themeIcon");
+  const ICON_MOON = "M12 3a9 9 0 109 9 7 7 0 01-9-9z";
+  const ICON_SUN  = "M12 7a5 5 0 100 10 5 5 0 000-10zM12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1";
+  function isLight(){ return document.documentElement.getAttribute("data-theme") === "light"; }
+  function updateThemeIcon(){ themeIcon.innerHTML = `<path d="${isLight() ? ICON_SUN : ICON_MOON}"/>`; }
+  document.getElementById("themeBtn").addEventListener("click", ()=>{
+    sfx.tick();
+    const light = !isLight();
+    document.documentElement.setAttribute("data-theme", light ? "light" : "dark");
+    try { localStorage.setItem("bgm_theme", light ? "light" : "dark"); } catch(e){}
+    updateThemeIcon();
+  });
+
   async function init(){
+    // theme restore
+    try {
+      const savedTheme = localStorage.getItem("bgm_theme");
+      if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+      updateThemeIcon();
+    } catch(e){}
     loadYT();
     if(!API_KEY){ tracks=TRACKS.slice(); render(); setStatus("Using built-in list (no API key)."); return; }
     setStatus("Loading playlist…");
