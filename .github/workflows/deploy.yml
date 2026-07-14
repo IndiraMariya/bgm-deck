@@ -29,7 +29,9 @@ jobs:
           cat > config.js <<EOF
           window.BGM_CONFIG = {
             API_KEY: "${{ secrets.YT_API_KEY }}",
-            PLAYLIST_ID: "${{ secrets.YT_PLAYLIST_ID }}"
+            PLAYLIST_ID: "${{ secrets.YT_PLAYLIST_ID }}",
+            SUPABASE_URL: "${{ secrets.SUPABASE_URL }}",
+            SUPABASE_ANON_KEY: "${{ secrets.SUPABASE_ANON_KEY }}"
           };
           EOF
 
