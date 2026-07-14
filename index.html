@@ -560,6 +560,61 @@
 
   #yt-host { position: fixed; left: -9999px; top: -9999px; width: 1px; height: 1px; }
 
+  /* ---------- Auth modal ---------- */
+  .auth-overlay {
+    position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(80% 80% at 50% 40%, rgba(0,0,0,.6), rgba(0,0,0,.85));
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+    opacity: 0; pointer-events: none; transition: opacity .3s ease;
+  }
+  .auth-overlay.open { opacity: 1; pointer-events: auto; }
+  .auth-card {
+    position: relative; width: min(92vw, 380px); border-radius: 18px; padding: 30px 26px 24px;
+    background:
+      repeating-linear-gradient(90deg, var(--brush) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, var(--metal-1), var(--metal-2) 60%, var(--metal-1));
+    box-shadow: inset 0 1px 0 var(--metal-edge), 0 30px 70px rgba(0,0,0,.6);
+    transform: scale(.94); transition: transform .3s cubic-bezier(.2,1,.3,1);
+  }
+  .auth-overlay.open .auth-card { transform: scale(1); }
+  .auth-close {
+    position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--btn-border); background: linear-gradient(180deg, var(--panel-hi), var(--metal-2));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .auth-close svg { width: 13px; height: 13px; fill: var(--muted); }
+  .auth-title { font-family: var(--cond); font-size: 22px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+  .auth-sub { font-size: 12.5px; color: var(--ink-soft); margin: 6px 0 18px; line-height: 1.4; }
+  .auth-input {
+    width: 100%; margin-bottom: 12px; padding: 11px 14px; border-radius: 9px; font-size: 14px; color: var(--ink);
+    border: 1px solid var(--btn-border);
+    background: linear-gradient(180deg, var(--lcd-bg-1), var(--lcd-bg-2));
+    outline: none;
+  }
+  .auth-input:focus { box-shadow: 0 0 0 2px var(--accent-glow); }
+  .auth-msg { font-size: 12px; min-height: 16px; margin-bottom: 12px; color: var(--accent-deep); }
+  .auth-msg.err { color: #d9634a; }
+  .auth-actions { display: flex; gap: 10px; }
+  .auth-actions .btn-metal { flex: 1; justify-content: center; }
+  .auth-primary { background: radial-gradient(circle at 50% 30%, var(--accent), var(--accent-deep)); border-color: var(--accent-deep); color: #fff; }
+  .auth-primary:hover { filter: brightness(1.1); }
+  .account-signed .auth-actions { display: none; }
+  /* account button: icon-only when signed out, icon + first name when signed in */
+  .btn-account #accountLabel { margin-left: 0; }
+  .btn-account #accountLabel:not(:empty) { margin-left: 8px; }
+
+  /* lifetime stats block inside the auth modal */
+  .auth-stats { margin: 4px 0 18px; display: none; }
+  .auth-stats.show { display: block; }
+  .auth-stats .stat-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 9px 0; border-bottom: 1px solid var(--line);
+  }
+  .auth-stats .stat-row:last-child { border-bottom: none; }
+  .auth-stats .stat-label { font-size: 13px; color: var(--ink-soft); }
+  .auth-stats .stat-val { font-family: var(--cond); font-size: 16px; color: var(--accent); letter-spacing: 0.04em; text-shadow: 0 0 6px var(--accent-glow); }
+  .auth-stats .stat-top { font-size: 12.5px; color: var(--ink); font-weight: 600; max-width: 60%; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
   @media (max-width: 560px) {
     .app { padding: 22px 16px 110px; }
     .transport button:first-child, .transport button:last-child { display: none; }
@@ -584,6 +639,9 @@
         </button>
         <button class="btn-metal" id="playAll">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play all
+        </button>
+        <button class="btn-metal btn-account" id="accountBtn" title="Sign in">
+          <svg viewBox="0 0 24 24"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-5 0-9 2.5-9 6v2h18v-2c0-3.5-4-6-9-6z"/></svg><span id="accountLabel"></span>
         </button>
       </div>
       <div class="deckbar-underline"></div>
@@ -660,8 +718,33 @@
     <button class="mp-open" id="mpOpen" title="Open deck"><svg viewBox="0 0 24 24"><path d="M7 14l5-5 5 5z"/></svg></button>
   </div>
 
-<!-- Local config (gitignored). Holds your YouTube Data API key. See config.example.js -->
+  <!-- Auth modal -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <button class="auth-close" id="authClose" title="Close">
+        <svg viewBox="0 0 24 24"><path d="M18.3 5.71L12 12l6.3 6.29-1.42 1.42L10.59 13.4 4.29 19.7 2.88 18.29 9.17 12 2.88 5.71 4.29 4.29l6.3 6.3 6.29-6.3z"/></svg>
+      </button>
+      <div class="auth-title" id="authTitle">Account</div>
+      <div class="auth-sub" id="authSub">Sign in to sync your listening history across devices.</div>
+      <div class="auth-stats" id="authStats">
+        <div class="stat-row"><span class="stat-label">Total listening</span><span class="stat-val" id="statTotal">0m</span></div>
+        <div class="stat-row"><span class="stat-label">Mixes played</span><span class="stat-val" id="statCount">0</span></div>
+        <div class="stat-row"><span class="stat-label">Top mix</span><span class="stat-top" id="statTop">—</span></div>
+      </div>
+      <input class="auth-input" id="authEmail" type="email" placeholder="Email" autocomplete="email">
+      <input class="auth-input" id="authPass" type="password" placeholder="Password" autocomplete="current-password">
+      <div class="auth-msg" id="authMsg"></div>
+      <div class="auth-actions">
+        <button class="btn-metal auth-primary" id="authSignIn">Sign in</button>
+        <button class="btn-metal" id="authSignUp">Create account</button>
+      </div>
+    </div>
+  </div>
+
+<!-- Local config (gitignored). Holds your API keys. See config.example.js -->
 <script src="config.js"></script>
+<!-- Supabase client (loads on the real site; blocked in the in-app preview) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 /* =========================================================================
    bgm deck — CDs on a brushed-metal player. Center-stage spinning deck.
@@ -730,9 +813,20 @@
 
   /* ---- listening-time tracking ---- */
   const LISTEN_KEY = "bgm_listen_seconds_v1";
+  const RESUME_KEY = "bgm_resume_v1";
   let listenData = {};
   try { listenData = JSON.parse(localStorage.getItem(LISTEN_KEY)) || {}; } catch (e) { listenData = {}; }
-  function saveListen() { try { localStorage.setItem(LISTEN_KEY, JSON.stringify(listenData)); } catch (e) {} }
+  let resumePoint = null; // { id, position }
+  try { resumePoint = JSON.parse(localStorage.getItem(RESUME_KEY)) || null; } catch (e) { resumePoint = null; }
+  function saveListen() {
+    try { localStorage.setItem(LISTEN_KEY, JSON.stringify(listenData)); } catch (e) {}
+    cloudSyncSoon();
+  }
+  function saveResume(id, position) {
+    resumePoint = { id, position: Math.floor(position||0) };
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumePoint)); } catch(e){}
+    cloudSyncSoon();
+  }
   function addSeconds(id, s) { if (id && s) listenData[id] = (listenData[id] || 0) + s; }
   function fmtListen(total) {
     total = Math.round(total);
@@ -906,7 +1000,7 @@
   }
 
   /* ---------------- YouTube IFrame API ---------------- */
-  let player = null, apiReady = false, pendingIndex = null;
+  let player = null, apiReady = false, pendingIndex = null, pendingResumeSeek = 0;
 
   function loadYT(){ const s=document.createElement("script"); s.src="https://www.youtube.com/iframe_api"; document.head.appendChild(s); }
   window.onYouTubeIframeAPIReady = function(){
@@ -917,7 +1011,11 @@
   };
   function onState(e){
     if (e.data===YT.PlayerState.ENDED){ stopTick(); next(); }
-    if (e.data===YT.PlayerState.PLAYING){ setPlayIcon(true); lcdState.textContent="Playing"; startTick(); updateProgress(); }
+    if (e.data===YT.PlayerState.PLAYING){
+      // Apply a queued resume seek once, right after playback actually starts.
+      if (pendingResumeSeek > 0){ const p=pendingResumeSeek; pendingResumeSeek=0; try{ player.seekTo(p, true); }catch(e){} }
+      setPlayIcon(true); lcdState.textContent="Playing"; startTick(); updateProgress();
+    }
     if (e.data===YT.PlayerState.PAUSED){ setPlayIcon(false); lcdState.textContent="Paused"; stopTick(); }
     if (e.data===YT.PlayerState.BUFFERING){ lcdState.textContent="Loading"; stopTick(); }
   }
@@ -937,6 +1035,8 @@
     if (i<0 || i>=tracks.length) return;
     if (!apiReady){ pendingIndex=i; return; }
     current=i; const t=tracks[i];
+    // If we have a saved resume point for this exact mix, queue a seek to it.
+    pendingResumeSeek = (resumePoint && resumePoint.id === t.id && resumePoint.position > 5) ? resumePoint.position : 0;
     player.loadVideoById(t.id);
     stageArt.src = coverUrl(t, "hqdefault");
     mpArt.src = coverUrl(t, "mqdefault");
@@ -1001,6 +1101,8 @@
     tickTimer=setInterval(()=>{
       const now=Date.now(), d=(now-lastTick)/1000; lastTick=now;
       if (current>=0 && d>0 && d<10){ addSeconds(tracks[current].id, d); if(++saveCounter%5===0){ saveListen(); } }
+      // record resume position for the current mix every few seconds
+      if (current>=0 && apiReady && player.getCurrentTime){ saveResume(tracks[current].id, player.getCurrentTime()); }
       updateProgress();
     }, 1000);
   }
@@ -1146,8 +1248,137 @@
     if (!showing) { refreshNote(); ambPanel.scrollIntoView({behavior:"smooth", block:"nearest"}); }
   });
 
+  /* ---------------- account + cloud sync (Supabase) ---------------- */
+  const SB_URL = (window.BGM_CONFIG && window.BGM_CONFIG.SUPABASE_URL) || "";
+  const SB_KEY = (window.BGM_CONFIG && window.BGM_CONFIG.SUPABASE_ANON_KEY) || "";
+  let sb = null, currentUser = null, cloudTimer = null;
+  const accountLabel = document.getElementById("accountLabel");
+  const authOverlay = document.getElementById("authOverlay");
+  const authSub = document.getElementById("authSub");
+  const authMsg = document.getElementById("authMsg");
+  const authEmail = document.getElementById("authEmail");
+  const authPass = document.getElementById("authPass");
+  const authActions = document.querySelector(".auth-actions");
+  const authTitle = document.getElementById("authTitle");
+  const authStats = document.getElementById("authStats");
+
+  // Derive a friendly first name from the email local-part.
+  function firstNameFromEmail(email){
+    const raw = (email||"").split("@")[0].split(/[._\-+0-9]/)[0] || "there";
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  }
+  function renderLifetimeStats(){
+    const ids = Object.keys(listenData).filter(k => (listenData[k]||0) > 0);
+    const total = ids.reduce((a,k)=> a + (listenData[k]||0), 0);
+    document.getElementById("statTotal").textContent = fmtListen(total);
+    document.getElementById("statCount").textContent = ids.length;
+    let topId = null, topSecs = 0;
+    ids.forEach(k => { if ((listenData[k]||0) > topSecs){ topSecs = listenData[k]; topId = k; } });
+    const topTrack = topId ? tracks.find(t=>t.id===topId) : null;
+    document.getElementById("statTop").textContent = topTrack ? topTrack.title : (topId ? "—" : "Nothing yet");
+  }
+
+  const accountEnabled = !!(SB_URL && SB_KEY && window.supabase);
+  if (accountEnabled) {
+    sb = window.supabase.createClient(SB_URL, SB_KEY);
+    sb.auth.getSession().then(({data})=>{ if(data.session){ onSignedIn(data.session.user); } });
+    sb.auth.onAuthStateChange((_e, session)=>{ if(session) onSignedIn(session.user); else onSignedOut(); });
+  }
+
+  function setAuthMsg(m, isErr){ authMsg.textContent = m||""; authMsg.classList.toggle("err", !!isErr); }
+  function openAuth(){
+    if (!accountEnabled) {
+      authTitle.textContent = "Account";
+      authSub.textContent = "Cloud accounts aren't set up for this site yet. Your history is still saved on this device.";
+      authEmail.style.display = authPass.style.display = "none";
+      authActions.style.display = "none";
+      authStats.classList.remove("show");
+      authOverlay.classList.add("open");
+      return;
+    }
+    if (currentUser) {
+      const name = firstNameFromEmail(currentUser.email);
+      authTitle.textContent = "Hi, " + name;
+      authSub.textContent = "Your lifetime listening, synced across devices.";
+      authEmail.style.display = authPass.style.display = "none";
+      renderLifetimeStats();
+      authStats.classList.add("show");
+      authActions.innerHTML = '<button class="btn-metal" id="authSignOut" style="flex:1;justify-content:center;">Sign out</button>';
+      document.getElementById("authSignOut").addEventListener("click", doSignOut);
+    } else {
+      authTitle.textContent = "Account";
+      authSub.textContent = "Sign in to sync your listening history across devices.";
+      authEmail.style.display = authPass.style.display = "";
+      authStats.classList.remove("show");
+    }
+    authOverlay.classList.add("open");
+  }
+  function closeAuth(){ authOverlay.classList.remove("open"); setAuthMsg(""); }
+
+  document.getElementById("accountBtn").addEventListener("click", ()=>{ sfx.tick(); openAuth(); });
+  document.getElementById("authClose").addEventListener("click", ()=>{ sfx.tick(); closeAuth(); });
+  authOverlay.addEventListener("click", (e)=>{ if(e.target===authOverlay) closeAuth(); });
+  document.getElementById("authSignIn").addEventListener("click", ()=> doAuth("in"));
+  document.getElementById("authSignUp").addEventListener("click", ()=> doAuth("up"));
+
+  async function doAuth(mode){
+    if (!accountEnabled) return;
+    const email = authEmail.value.trim(), password = authPass.value;
+    if (!email || !password){ setAuthMsg("Enter an email and password.", true); return; }
+    setAuthMsg(mode==="up" ? "Creating account…" : "Signing in…");
+    try {
+      const { error } = mode==="up"
+        ? await sb.auth.signUp({email,password})
+        : await sb.auth.signInWithPassword({email,password});
+      if (error) throw error;
+      setAuthMsg(mode==="up" ? "Account created. If email confirmation is on, check your inbox." : "Signed in.");
+    } catch(e){ setAuthMsg(e.message || "Something went wrong.", true); }
+  }
+  async function doSignOut(){ if(sb) await sb.auth.signOut(); closeAuth(); }
+
+  async function onSignedIn(user){
+    currentUser = user;
+    const name = firstNameFromEmail(user.email);
+    accountLabel.textContent = name;
+    document.getElementById("accountBtn").title = "Signed in as " + name;
+    await cloudLoad();
+    renderRack();
+  }
+  function onSignedOut(){
+    currentUser = null;
+    accountLabel.textContent = "";           // icon-only when signed out
+    document.getElementById("accountBtn").title = "Sign in";
+  }
+
+  // Merge: keep the larger listen-seconds per mix; take the loaded resume point.
+  async function cloudLoad(){
+    if (!sb || !currentUser) return;
+    try {
+      const { data, error } = await sb.from("bgm_stats").select("stats, resume").eq("user_id", currentUser.id).maybeSingle();
+      if (error) return;
+      if (data && data.stats) {
+        Object.keys(data.stats).forEach(id => { listenData[id] = Math.max(listenData[id]||0, data.stats[id]||0); });
+        try { localStorage.setItem(LISTEN_KEY, JSON.stringify(listenData)); } catch(e){}
+      }
+      if (data && data.resume) { resumePoint = data.resume; try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumePoint)); } catch(e){} }
+      cloudPush();
+    } catch(e){}
+  }
+  function cloudSyncSoon(){
+    if (!sb || !currentUser) return;
+    clearTimeout(cloudTimer);
+    cloudTimer = setTimeout(cloudPush, 4000);
+  }
+  async function cloudPush(){
+    if (!sb || !currentUser) return;
+    try {
+      await sb.from("bgm_stats").upsert({
+        user_id: currentUser.id, stats: listenData, resume: resumePoint, updated_at: new Date().toISOString()
+      }, { onConflict: "user_id" });
+    } catch(e){}
+  }
+
   /* ---------------- theme toggle ---------------- */
-  const themeIcon = document.getElementById("themeIcon");
   const ICON_MOON = "M12 3a9 9 0 109 9 7 7 0 01-9-9z";
   const ICON_SUN  = "M12 7a5 5 0 100 10 5 5 0 000-10zM12 1v3M12 20v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M1 12h3M20 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1";
   function isLight(){ return document.documentElement.getAttribute("data-theme") === "light"; }
