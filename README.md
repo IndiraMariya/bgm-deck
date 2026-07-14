@@ -1,5 +1,7 @@
 # bgm deck
 
+![bgm deck](screenshot.jpeg)
+
 A brushed-metal CD player for the web. It turns a public YouTube playlist into
 spinning CDs you can play, with an inline ambient sound mixer, light/dark modes,
 and listening-time tracking. Single static page — no build step, no backend.
