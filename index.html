@@ -162,6 +162,7 @@
 
   /* ---------- Most-played rack ---------- */
   .rack { margin-top: 44px; padding-top: 26px; border-top: 1px solid var(--line); }
+  .rack.rack-top { margin-top: 4px; padding-top: 0; border-top: none; margin-bottom: 30px; }
   .rack .rack-h {
     font-family: var(--cond); font-size: 13px; letter-spacing: 0.2em; text-transform: uppercase;
     color: var(--ink-soft); margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
@@ -391,10 +392,18 @@
     position: absolute; top: 50%; left: 50%; width: 10px; height: 10px; transform: translate(-50%,-50%);
     border-radius: 50%; background: #cfd4db; box-shadow: 0 0 0 4px #0a0b0d, 0 0 0 5px rgba(255,255,255,.15); z-index: 5;
   }
-  /* the actual spinning disc on the deck */
+  /* flip wrapper: holds front (disc) + back (B-side), rotates on Y to flip */
+  .disc-flip {
+    position: relative; width: 88%; height: 88%;
+    transform-style: preserve-3d; transition: transform .7s cubic-bezier(.3,.9,.3,1);
+    cursor: pointer;
+  }
+  .disc-flip.flipped { transform: rotateY(180deg); }
+  /* the actual spinning disc on the deck (front face) */
   .stage-disc {
-    position: relative; width: 88%; height: 88%; border-radius: 50%;
+    position: relative; width: 100%; height: 100%; border-radius: 50%;
     box-shadow: 0 10px 26px rgba(0,0,0,.7);
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
   }
   .stage-disc .art {
     position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
@@ -441,6 +450,37 @@
   /* Always animating; we pause the animation to freeze the current angle. */
   .stage-disc { animation: discspin 5s linear infinite; animation-play-state: paused; }
   .stage-disc.spinning { animation-play-state: running; }
+
+  /* B-side (back face): a printed label with the mix's stats */
+  .stage-bside {
+    position: absolute; inset: 0; border-radius: 50%;
+    transform: rotateY(180deg); backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background:
+      repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.05) 0 2px, transparent 2px 4px),
+      radial-gradient(circle at 50% 40%, #f4f1e8, #d8d2c4 70%, #b9b3a4);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.2), 0 10px 26px rgba(0,0,0,.7);
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .stage-bside .bside-inner { text-align: center; padding: 14%; color: #2a2620; width: 100%; }
+  .stage-bside .bside-title {
+    font-family: var(--cond); font-weight: 700; font-size: clamp(13px, 4vw, 18px); letter-spacing: 0.04em;
+    line-height: 1.2; margin-bottom: 10px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .stage-bside .bside-stats { font-family: var(--cond); font-size: clamp(11px, 3vw, 13px); line-height: 1.7; color: #4a443a; }
+  .stage-bside .bside-stats b { color: #2a2620; }
+  .stage-bside .bside-foot { margin-top: 12px; font-size: 9px; letter-spacing: 0.24em; color: #8a8272; }
+
+  /* wear over time: subtle scratches that build up with play count */
+  .stage-disc .wear, .disc .wear {
+    position: absolute; inset: 0; border-radius: 50%; pointer-events: none; z-index: 3; opacity: 0;
+    background:
+      repeating-conic-gradient(from 0deg, rgba(255,255,255,.05) 0deg 1deg, transparent 1deg 9deg),
+      repeating-radial-gradient(circle at 50% 50%, rgba(0,0,0,.05) 0 1px, transparent 1px 7px);
+    -webkit-mask: radial-gradient(circle at 50% 50%, transparent 0 14%, #000 14.5%);
+            mask: radial-gradient(circle at 50% 50%, transparent 0 14%, #000 14.5%);
+    mix-blend-mode: overlay;
+  }
   /* Idle breathing glow on the tray so the deck never feels dead (no rotation,
      so it doesn't fight the angle-freeze on pause). */
   @keyframes trayBreath { 0%,100%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 22px rgba(255,255,255,.03);} 50%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 34px var(--accent-glow);} }
@@ -649,12 +689,12 @@
 
     <p class="status" id="status"></p>
 
-    <div class="grid" id="grid"></div>
-
-    <section class="rack" id="recent" style="display:none;">
+    <section class="rack rack-top" id="recent" style="display:none;">
       <div class="rack-h">Recently Played</div>
       <div class="rack-row" id="recent-row"></div>
     </section>
+
+    <div class="grid" id="grid"></div>
 
     <section class="rack" id="rack" style="display:none;">
       <div class="rack-h">Most Played</div>
@@ -680,11 +720,21 @@
         </div>
       </div>
       <div class="tray">
-        <div class="stage-disc" id="stageDisc">
-          <div class="art"><img id="stageArt" alt=""></div>
-          <div class="chrome"></div>
-          <div class="grooves"></div>
-          <div class="hub"></div>
+        <div class="disc-flip" id="discFlip">
+          <div class="stage-disc" id="stageDisc">
+            <div class="art"><img id="stageArt" alt=""></div>
+            <div class="chrome"></div>
+            <div class="grooves"></div>
+            <div class="wear" id="stageWear"></div>
+            <div class="hub"></div>
+          </div>
+          <div class="stage-bside" id="stageBside">
+            <div class="bside-inner">
+              <div class="bside-title" id="bsideTitle">—</div>
+              <div class="bside-stats" id="bsideStats"></div>
+              <div class="bside-foot">B-SIDE · tap to flip back</div>
+            </div>
+          </div>
         </div>
         <div class="glare"></div>
         <span class="spindle"></span>
@@ -949,7 +999,9 @@
       const grooves = document.createElement("div"); grooves.className = "grooves";
       const sheen = document.createElement("div"); sheen.className = "sheen";
       const hub = document.createElement("div"); hub.className = "hub";
-      disc.appendChild(art); disc.appendChild(chrome); disc.appendChild(grooves); disc.appendChild(sheen); disc.appendChild(hub);
+      const wear = document.createElement("div"); wear.className = "wear";
+      wear.style.opacity = wearOpacity(meta.plays[t.id] || 0);
+      disc.appendChild(art); disc.appendChild(chrome); disc.appendChild(grooves); disc.appendChild(sheen); disc.appendChild(wear); disc.appendChild(hub);
 
       const label = document.createElement("div"); label.className = "label"; label.textContent = t.title;
       const sub = document.createElement("div"); sub.className = "sub";
@@ -1115,8 +1167,9 @@
       if (pendingResumeSeek > 0){ const p=pendingResumeSeek; pendingResumeSeek=0; try{ player.seekTo(p, true); }catch(e){} }
       applyVolume();
       setPlayIcon(true); lcdState.textContent="Playing"; startTick(); updateProgress();
+      if (current>=0) document.title = "♪ " + tracks[current].title;   // now spinning
     }
-    if (e.data===YT.PlayerState.PAUSED){ setPlayIcon(false); lcdState.textContent="Paused"; stopTick(); }
+    if (e.data===YT.PlayerState.PAUSED){ setPlayIcon(false); lcdState.textContent="Paused"; stopTick(); document.title = "bgm deck"; }
     if (e.data===YT.PlayerState.BUFFERING){ lcdState.textContent="Loading"; stopTick(); }
   }
   function onErr(){ lcdState.textContent="Embed error"; }
@@ -1146,6 +1199,8 @@
     pfill.style.width = "0%"; pcur.textContent = "0:00"; pdur.textContent = t.duration || "0:00";
     applyCoverAmbience(coverUrl(t, "hqdefault"));  // tint the deck to the cover
     recordPlay(t.id);                              // play count + last-played memory
+    if (stageWear) stageWear.style.opacity = wearOpacity(meta.plays[t.id] || 0);  // patina
+    if (flipped){ flipped = false; discFlip.classList.remove("flipped"); }        // reset B-side
   }
   function next(){ if (tracks.length) flyAndPlay((current+1)%tracks.length, grid.querySelectorAll(".disc")[(current+1)%tracks.length]); }
   function prev(){ if (tracks.length){ const p=(current-1+tracks.length)%tracks.length; flyAndPlay(p, grid.querySelectorAll(".disc")[p]); } }
@@ -1242,6 +1297,71 @@
     try { localStorage.setItem(REPEAT_KEY, repeatMode); } catch(e){}
     renderRepeat();
   });
+
+  /* ---------------- wear over time ---------------- */
+  // More plays -> more visible patina, capped so it never obscures the art.
+  function wearOpacity(plays){ return Math.min(0.5, plays * 0.05).toFixed(2); }
+  const stageWear = document.getElementById("stageWear");
+
+  /* ---------------- B-side flip ---------------- */
+  const discFlip = document.getElementById("discFlip");
+  const bsideTitle = document.getElementById("bsideTitle");
+  const bsideStats = document.getElementById("bsideStats");
+  let flipped = false, dragActive = false;
+  function fillBside(){
+    if (current < 0) return;
+    const t = tracks[current];
+    bsideTitle.textContent = t.title;
+    const plays = meta.plays[t.id] || 0;
+    const secs = listenData[t.id] || 0;
+    const last = meta.last[t.id] ? fmtAgo(meta.last[t.id]) : "—";
+    bsideStats.innerHTML =
+      `<div><b>${plays}</b> play${plays===1?"":"s"}</div>` +
+      `<div><b>${fmtListen(secs)}</b> total</div>` +
+      `<div>last: <b>${last}</b></div>`;
+  }
+  discFlip.addEventListener("click", (e)=>{
+    if (dragActive) return;            // don't flip if the user was scratching
+    if (current < 0) return;
+    flipped = !flipped;
+    if (flipped){ fillBside(); }
+    discFlip.classList.toggle("flipped", flipped);
+    sfx.tick();
+  });
+
+  /* ---------------- scratch to seek ---------------- */
+  // Drag the disc like a turntable: horizontal drag scrubs playback.
+  (function(){
+    let startX = 0, startTime = 0, moved = 0;
+    function down(e){
+      if (flipped || !apiReady || current<0 || !player.getDuration) return;
+      const dur = player.getDuration() || 0; if (!dur) return;
+      dragActive = false; moved = 0;
+      startX = (e.touches ? e.touches[0].clientX : e.clientX);
+      startTime = player.getCurrentTime() || 0;
+      window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
+      window.addEventListener("touchmove", move, {passive:false}); window.addEventListener("touchend", up);
+    }
+    function move(e){
+      const x = (e.touches ? e.touches[0].clientX : e.clientX);
+      const dx = x - startX; moved = Math.abs(dx);
+      if (moved > 4){ dragActive = true; discFlip.style.cursor = "ew-resize"; if (e.cancelable) e.preventDefault(); }
+      const dur = player.getDuration() || 0;
+      // full tray width ~ scrub the whole track; tune sensitivity here
+      const seconds = startTime + (dx / 260) * Math.min(dur, 3600);
+      const target = Math.max(0, Math.min(dur, seconds));
+      player.seekTo(target, true); updateProgress();
+    }
+    function up(){
+      discFlip.style.cursor = "";
+      window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up);
+      window.removeEventListener("touchmove", move); window.removeEventListener("touchend", up);
+      // clear the drag flag on the next tick so the click handler can read it first
+      setTimeout(()=>{ dragActive = false; }, 0);
+    }
+    discFlip.addEventListener("mousedown", down);
+    discFlip.addEventListener("touchstart", down, {passive:true});
+  })();
   document.getElementById("ejectBtn").addEventListener("click", ()=>{
     sfx.eject();
     if (apiReady) player.pauseVideo();
@@ -1250,6 +1370,8 @@
     stageDisc.classList.remove("spinning");
     miniPlayer.classList.remove("show");
     clearAmbience();
+    if (flipped){ flipped = false; discFlip.classList.remove("flipped"); }
+    document.title = "bgm deck";
     current = -1;
     renderRack();
   });
