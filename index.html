@@ -178,71 +178,6 @@
   .rack-item .rk-time { font-family: var(--cond); font-size: 12px; color: var(--accent); letter-spacing: 0.05em; }
   .rack-item .rk-rank { font-family: var(--cond); font-size: 11px; color: var(--muted); }
 
-  /* ---------- Ambient mixer (inline panel) ---------- */
-  .ambient { margin-top: 40px; padding-top: 26px; border-top: 1px solid var(--line); }
-  .ambient .amb-intro { font-family: var(--cond); letter-spacing: 0.05em; color: var(--ink-soft); font-size: 12.5px; margin: -4px 0 18px; }
-  .ambient .amb-intro span { color: var(--muted); }
-  .channels { display: grid; gap: 12px; }
-  .chan {
-    display: grid; grid-template-columns: 42px 1fr 72px; align-items: center; gap: 14px;
-    padding: 12px 16px; border-radius: 12px; border: 1px solid var(--btn-border);
-    background:
-      repeating-linear-gradient(90deg, rgba(255,255,255,.02) 0 2px, transparent 2px 4px),
-      linear-gradient(180deg, var(--panel-hi), var(--metal-2));
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 3px 10px rgba(0,0,0,.4);
-  }
-  .chan.missing { opacity: .5; }
-  .chan .icon {
-    width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-    background: radial-gradient(circle at 50% 30%, #2b93c2, #14607f);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 0 12px var(--accent-glow);
-  }
-  .chan.off .icon { background: linear-gradient(180deg, var(--metal-1), var(--metal-2)); box-shadow: inset 0 1px 0 rgba(255,255,255,.14); }
-  .chan .icon svg { width: 20px; height: 20px; fill: #eaf7ff; }
-  .chan.off .icon svg { fill: var(--muted); }
-  .chan .meta { min-width: 0; }
-  .chan .name { font-family: var(--cond); letter-spacing: 0.12em; text-transform: uppercase; font-size: 14px; }
-  .chan .hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .chan .hint code { color: var(--accent); }
-  .ambient input[type=range] {
-    -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 999px; outline: none; cursor: pointer;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--v,0%), #0c1116 var(--v,0%), #0c1116 100%);
-    box-shadow: inset 0 0 0 1px rgba(87,194,232,.18);
-  }
-  .ambient input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
-    background: radial-gradient(circle at 50% 35%, #d7dce2, #9aa0a8 60%, #6b7079);
-    box-shadow: 0 0 8px var(--accent-glow), 0 1px 3px rgba(0,0,0,.6); border: 1px solid var(--btn-border);
-  }
-  .chan .vnum { font-family: var(--cond); font-size: 12px; color: var(--accent); text-align: right; text-shadow: 0 0 6px var(--accent-glow); }
-  .chan .vwrap { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-  .chan .vbars { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
-  .chan .vbars span {
-    width: 4px; border-radius: 1px; background: #0c1116; box-shadow: inset 0 0 0 1px rgba(87,194,232,.14);
-    transition: background .12s ease, box-shadow .12s ease;
-  }
-  .chan .vbars span:nth-child(1){ height: 4px; }
-  .chan .vbars span:nth-child(2){ height: 6px; }
-  .chan .vbars span:nth-child(3){ height: 8px; }
-  .chan .vbars span:nth-child(4){ height: 10px; }
-  .chan .vbars span:nth-child(5){ height: 12px; }
-  .chan .vbars span.on {
-    background: linear-gradient(180deg, #bfeeff, var(--accent));
-    box-shadow: 0 0 6px var(--accent-glow), inset 0 0 0 1px rgba(255,255,255,.3);
-  }
-  .masterbar {
-    margin-top: 16px; padding: 14px 16px; border-radius: 12px;
-    display: flex; align-items: center; gap: 14px;
-    background: linear-gradient(180deg, #0b1a20, #04090c);
-    box-shadow: inset 0 0 12px rgba(0,0,0,.9), inset 0 0 0 1px rgba(87,194,232,.18);
-  }
-  .masterbar .mlabel { font-family: var(--cond); letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-size: 13px; white-space: nowrap; }
-  .masterbar button {
-    width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 1px solid var(--accent-deep); flex-shrink: 0;
-    background: radial-gradient(circle at 50% 30%, #2b93c2, #14607f); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 14px var(--accent-glow);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .masterbar button svg { width: 17px; height: 17px; fill: #eaf7ff; }
   .btn-metal.active { background: radial-gradient(circle at 50% 30%, #2b93c2, #14607f); border-color: var(--accent-deep); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 0 12px var(--accent-glow); }
   .btn-metal.active svg { fill: #eaf7ff; }
 
@@ -336,6 +271,7 @@
   }
   .case .sub { margin-top: 3px; font-family: var(--cond); font-size: 11.5px; letter-spacing: 0.06em; color: var(--muted); }
   .case .sub .lb { color: var(--accent); }
+  .case .memo { margin-top: 2px; font-size: 11px; color: var(--muted); opacity: .8; font-style: italic; }
 
   .empty { grid-column: 1/-1; text-align: center; padding: 70px 20px; color: var(--muted); font-family: var(--cond); letter-spacing: 0.1em; text-transform: uppercase; }
 
@@ -526,6 +462,28 @@
   .transport button.big { background: radial-gradient(circle at 50% 30%, #2b93c2, #14607f); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 16px var(--accent-glow), 0 3px 8px rgba(0,0,0,.6); }
   .transport button.big svg { width: 22px; height: 22px; fill: #eaf7ff; }
 
+  /* volume row under the transport */
+  .volume-row { display: flex; align-items: center; gap: 12px; margin: 18px auto 0; max-width: 300px; }
+  .vol-mute {
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
+    border: 1px solid var(--btn-border); background: linear-gradient(180deg, var(--panel-hi), var(--metal-2));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 2px 4px rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .vol-mute:hover { filter: brightness(1.15); }
+  .vol-mute svg { width: 15px; height: 15px; fill: var(--ink-soft); }
+  .volume-row input[type=range] {
+    -webkit-appearance: none; appearance: none; flex: 1; height: 5px; border-radius: 999px; outline: none; cursor: pointer;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--accent) var(--v,100%), var(--lcd-bg-2) var(--v,100%), var(--lcd-bg-2) 100%);
+    box-shadow: inset 0 0 0 1px var(--accent-glow);
+  }
+  .volume-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 15px; height: 15px; border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #d7dce2, #9aa0a8 60%, #6b7079);
+    box-shadow: 0 0 8px var(--accent-glow), 0 1px 3px rgba(0,0,0,.6); border: 1px solid var(--btn-border);
+  }
+  .vol-num { font-family: var(--cond); font-size: 11px; color: var(--accent); width: 26px; text-align: right; text-shadow: 0 0 6px var(--accent-glow); }
+
   /* flying disc clone used for the flight+flip animation */
   .flyer { position: fixed; z-index: 70; border-radius: 50%; pointer-events: none; box-shadow: 0 12px 30px rgba(0,0,0,.7); }
   .flyer .art { position: absolute; inset: 0; border-radius: 50%; overflow: hidden;
@@ -614,6 +572,21 @@
   .auth-stats .stat-label { font-size: 13px; color: var(--ink-soft); }
   .auth-stats .stat-val { font-family: var(--cond); font-size: 16px; color: var(--accent); letter-spacing: 0.04em; text-shadow: 0 0 6px var(--accent-glow); }
   .auth-stats .stat-top { font-size: 12.5px; color: var(--ink); font-weight: 600; max-width: 60%; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .auth-stats .stat-greeting {
+    font-family: var(--cond); font-size: 14px; letter-spacing: 0.02em; color: var(--ink-soft);
+    margin: 2px 0 14px; line-height: 1.4;
+  }
+  .auth-stats .stat-greeting b { color: var(--accent); font-weight: 700; }
+  .auth-stats .stat-spark { padding-top: 14px; }
+  .auth-stats .spark-label { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .auth-stats .spark { display: flex; align-items: flex-end; gap: 2px; height: 46px; }
+  .auth-stats .spark span {
+    flex: 1; border-radius: 2px 2px 0 0; min-height: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    box-shadow: 0 0 6px var(--accent-glow); opacity: .85;
+  }
+  .auth-stats .spark span.peak { opacity: 1; box-shadow: 0 0 10px var(--accent-glow); }
+  .auth-stats .spark-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: var(--muted); font-family: var(--cond); letter-spacing: 0.06em; }
 
   @media (max-width: 560px) {
     .app { padding: 22px 16px 110px; }
@@ -634,9 +607,6 @@
         <button class="btn-metal" id="themeBtn" title="Toggle light / dark">
           <svg id="themeIcon" viewBox="0 0 24 24"><path d="M12 3a9 9 0 109 9 7 7 0 01-9-9z"/></svg>
         </button>
-        <button class="btn-metal" id="ambientBtn" title="Toggle ambient mixer">
-          <svg viewBox="0 0 24 24"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg> Ambient
-        </button>
         <button class="btn-metal" id="playAll">
           <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg> Play all
         </button>
@@ -654,18 +624,6 @@
     <section class="rack" id="rack" style="display:none;">
       <div class="rack-h">Most Played</div>
       <div class="rack-row" id="rack-row"></div>
-    </section>
-
-    <section class="ambient" id="ambient" style="display:none;">
-      <div class="rack-h">Ambient Layers</div>
-      <p class="amb-intro">Blend these over whatever's playing. <span id="amb-note"></span></p>
-      <div class="channels" id="channels"></div>
-      <div class="masterbar">
-        <button id="masterToggle" title="Play / pause all layers"><svg id="mtIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
-        <span class="mlabel">Master</span>
-        <input type="range" id="master" min="0" max="100" value="80">
-        <span class="vnum" id="masterNum">80</span>
-      </div>
     </section>
   </div>
 
@@ -705,6 +663,13 @@
         <button class="big" id="playPauseBtn" title="Play / Pause"><svg id="ppIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
         <button id="nextBtn" title="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
       </div>
+      <div class="volume-row">
+        <button class="vol-mute" id="volMute" title="Mute / unmute">
+          <svg id="volIcon" viewBox="0 0 24 24"><path d="M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg>
+        </button>
+        <input type="range" id="volume" min="0" max="100" value="100" title="Volume">
+        <span class="vol-num" id="volNum">100</span>
+      </div>
     </div>
   </div>
 
@@ -727,9 +692,16 @@
       <div class="auth-title" id="authTitle">Account</div>
       <div class="auth-sub" id="authSub">Sign in to sync your listening history across devices.</div>
       <div class="auth-stats" id="authStats">
+        <div class="stat-greeting" id="statGreeting"></div>
         <div class="stat-row"><span class="stat-label">Total listening</span><span class="stat-val" id="statTotal">0m</span></div>
+        <div class="stat-row"><span class="stat-label">Day streak</span><span class="stat-val" id="statStreak">0</span></div>
         <div class="stat-row"><span class="stat-label">Mixes played</span><span class="stat-val" id="statCount">0</span></div>
         <div class="stat-row"><span class="stat-label">Top mix</span><span class="stat-top" id="statTop">—</span></div>
+        <div class="stat-spark">
+          <div class="spark-label">When you listen</div>
+          <div class="spark" id="statSpark"></div>
+          <div class="spark-axis"><span>12a</span><span>6a</span><span>12p</span><span>6p</span><span>11p</span></div>
+        </div>
       </div>
       <input class="auth-input" id="authEmail" type="email" placeholder="Email" autocomplete="email">
       <input class="auth-input" id="authPass" type="password" placeholder="Password" autocomplete="current-password">
@@ -835,6 +807,47 @@
     return h ? `${h}h ${m}m` : `${m}m`;
   }
 
+  /* ---- richer listening metadata: play counts, last-played, hourly, streak ---- */
+  const META_KEY = "bgm_meta_v1";
+  let meta = { plays:{}, last:{}, hours:new Array(24).fill(0), days:[] };
+  try {
+    const m = JSON.parse(localStorage.getItem(META_KEY));
+    if (m) meta = Object.assign(meta, m);
+    if (!Array.isArray(meta.hours) || meta.hours.length!==24) meta.hours = new Array(24).fill(0);
+    if (!Array.isArray(meta.days)) meta.days = [];
+  } catch(e){}
+  function saveMeta(){ try { localStorage.setItem(META_KEY, JSON.stringify(meta)); } catch(e){} }
+  function todayKey(d){ d=d||new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+  function recordPlay(id){
+    meta.plays[id] = (meta.plays[id]||0) + 1;
+    meta.last[id] = Date.now();
+    meta.hours[new Date().getHours()]++;
+    const tk = todayKey();
+    if (meta.days[meta.days.length-1] !== tk) meta.days.push(tk);
+    saveMeta();
+  }
+  // Consecutive-day streak ending today (or yesterday).
+  function currentStreak(){
+    if (!meta.days.length) return 0;
+    const set = new Set(meta.days);
+    let streak = 0; const d = new Date();
+    // allow the streak to still count if the last listen was yesterday
+    if (!set.has(todayKey(d))) d.setDate(d.getDate()-1);
+    while (set.has(todayKey(d))){ streak++; d.setDate(d.getDate()-1); }
+    return streak;
+  }
+  // "just now" / "2h ago" / "Tuesday" / "Mar 3"
+  function fmtAgo(ts){
+    if (!ts) return "";
+    const diff = (Date.now()-ts)/1000;
+    if (diff < 90) return "just now";
+    if (diff < 3600) return Math.round(diff/60)+"m ago";
+    if (diff < 86400) return Math.round(diff/3600)+"h ago";
+    const days = diff/86400;
+    if (days < 7) return new Date(ts).toLocaleDateString(undefined,{weekday:"long"});
+    return new Date(ts).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+  }
+
   function setStatus(msg, isErr) { statusEl.textContent = msg || ""; statusEl.classList.toggle("err", !!isErr); }
 
   // seconds -> "3:07" / "1:02:05"
@@ -893,10 +906,15 @@
       const label = document.createElement("div"); label.className = "label"; label.textContent = t.title;
       const sub = document.createElement("div"); sub.className = "sub";
       const secs = listenData[t.id] || 0;
+      const plays = meta.plays[t.id] || 0;
       sub.innerHTML = (t.duration ? t.duration : "")
         + (secs >= 30 ? `${t.duration ? " &middot; " : ""}<span class="lb">${fmtListen(secs)} played</span>` : "");
+      // gentle "memory" line: when you last spun this disc
+      const memo = document.createElement("div"); memo.className = "memo";
+      if (meta.last[t.id]) memo.textContent = `last played ${fmtAgo(meta.last[t.id])}` + (plays>1 ? ` · ${plays}×` : "");
 
       cse.appendChild(disc); cse.appendChild(label); cse.appendChild(sub);
+      if (memo.textContent) cse.appendChild(memo);
       cse.addEventListener("click", () => { sfx.press(); flyAndPlay(i, disc); });
       grid.appendChild(cse);
     });
@@ -1006,7 +1024,7 @@
   window.onYouTubeIframeAPIReady = function(){
     player = new YT.Player("yt-player", {
       height:"1", width:"1", playerVars:{autoplay:0, playsinline:1, rel:0},
-      events:{ onReady:()=>{ apiReady=true; if(pendingIndex!==null){ playIndex(pendingIndex); pendingIndex=null; } }, onStateChange:onState, onError:onErr }
+      events:{ onReady:()=>{ apiReady=true; applyVolume(); if(pendingIndex!==null){ playIndex(pendingIndex); pendingIndex=null; } }, onStateChange:onState, onError:onErr }
     });
   };
   function onState(e){
@@ -1014,6 +1032,7 @@
     if (e.data===YT.PlayerState.PLAYING){
       // Apply a queued resume seek once, right after playback actually starts.
       if (pendingResumeSeek > 0){ const p=pendingResumeSeek; pendingResumeSeek=0; try{ player.seekTo(p, true); }catch(e){} }
+      applyVolume();
       setPlayIcon(true); lcdState.textContent="Playing"; startTick(); updateProgress();
     }
     if (e.data===YT.PlayerState.PAUSED){ setPlayIcon(false); lcdState.textContent="Paused"; stopTick(); }
@@ -1044,6 +1063,8 @@
     mpTitle.textContent = t.title;
     lcdState.textContent = "Loading";
     pfill.style.width = "0%"; pcur.textContent = "0:00"; pdur.textContent = t.duration || "0:00";
+    applyCoverAmbience(coverUrl(t, "hqdefault"));  // tint the deck to the cover
+    recordPlay(t.id);                              // play count + last-played memory
   }
   function next(){ if (tracks.length) flyAndPlay((current+1)%tracks.length, grid.querySelectorAll(".disc")[(current+1)%tracks.length]); }
   function prev(){ if (tracks.length){ const p=(current-1+tracks.length)%tracks.length; flyAndPlay(p, grid.querySelectorAll(".disc")[p]); } }
@@ -1057,6 +1078,40 @@
   document.getElementById("nextBtn").addEventListener("click", ()=> { sfx.tick(); next(); });
   document.getElementById("prevBtn").addEventListener("click", ()=> { sfx.tick(); prev(); });
   document.getElementById("playPauseBtn").addEventListener("click", ()=> { sfx.press(); togglePlay(); });
+
+  /* ---------------- volume ---------------- */
+  const VOL_KEY = "bgm_volume_v1";
+  const volSlider = document.getElementById("volume");
+  const volNum = document.getElementById("volNum");
+  const volIcon = document.getElementById("volIcon");
+  let volLevel = 100, volMuted = false;
+  try { const v = JSON.parse(localStorage.getItem(VOL_KEY)); if (v){ volLevel = v.level ?? 100; volMuted = !!v.muted; } } catch(e){}
+  const ICON_VOL  = "M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z";
+  const ICON_MUTE = "M3 10v4h4l5 5V5L7 10H3zm18.3-1.3L20 7.4 17.4 10 14.8 7.4l-1.3 1.3L16 11.3l-2.6 2.6 1.3 1.3L17.4 12.6 20 15.2l1.3-1.3L18.7 11.3z";
+  function saveVol(){ try{ localStorage.setItem(VOL_KEY, JSON.stringify({level:volLevel, muted:volMuted})); }catch(e){} }
+  function applyVolume(){
+    if (!apiReady || !player.setVolume) return;
+    if (volMuted || volLevel === 0){ player.mute(); }
+    else { player.unMute(); player.setVolume(volLevel); }
+    volSlider.value = volMuted ? 0 : volLevel;
+    volSlider.style.setProperty("--v", (volMuted ? 0 : volLevel) + "%");
+    volNum.textContent = volMuted ? 0 : volLevel;
+    volIcon.innerHTML = `<path d="${(volMuted || volLevel===0) ? ICON_MUTE : ICON_VOL}"/>`;
+  }
+  volSlider.value = volMuted ? 0 : volLevel;
+  volSlider.style.setProperty("--v", (volMuted ? 0 : volLevel) + "%");
+  volNum.textContent = volMuted ? 0 : volLevel;
+  volIcon.innerHTML = `<path d="${(volMuted || volLevel===0) ? ICON_MUTE : ICON_VOL}"/>`;
+  volSlider.addEventListener("input", ()=>{
+    volLevel = +volSlider.value; volMuted = (volLevel === 0);
+    applyVolume(); saveVol();
+  });
+  document.getElementById("volMute").addEventListener("click", ()=>{
+    sfx.tick();
+    volMuted = !volMuted;
+    if (!volMuted && volLevel === 0) volLevel = 60; // unmuting from zero restores an audible level
+    applyVolume(); saveVol();
+  });
   document.getElementById("ejectBtn").addEventListener("click", ()=>{
     sfx.eject();
     if (apiReady) player.pauseVideo();
@@ -1064,6 +1119,7 @@
     stage.classList.remove("open");
     stageDisc.classList.remove("spinning");
     miniPlayer.classList.remove("show");
+    clearAmbience();
     current = -1;
     renderRack();
   });
@@ -1137,116 +1193,47 @@
   }
   function fmtDuration(iso){ const m=/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso||""); if(!m) return ""; const h=+(m[1]||0),mn=+(m[2]||0),s=+(m[3]||0),p=n=>String(n).padStart(2,"0"); return h?`${h}:${p(mn)}:${p(s)}`:`${mn}:${p(s)}`; }
 
-  /* ---------------- inline ambient mixer ---------------- */
-  const AMB_CHANNELS = [
-    { key:"rain",     name:"Rain",     file:"audio/rain.mp3",  path:"M4 15h16M7 18l-1 3m5-3l-1 3m5-3l-1 3M12 3a6 6 0 00-6 6c-2 0-3 1.5-3 3h18c0-2-1.5-3.5-3.5-3.5A6 6 0 0012 3z"},
-    { key:"cafe",     name:"Cafe",     file:"audio/cafe.mp3",  path:"M4 19h16v2H4zM6 3h9a4 4 0 010 8h-1v3a3 3 0 01-3 3H8a3 3 0 01-3-3V3h1z"},
-    { key:"fountain", name:"Fountain", file:"audio/ocean.wav", path:"M12 3c1.5 2 3 3.8 3 6a3 3 0 11-6 0c0-2.2 1.5-4 3-6zM5 14c1.2 0 1.2 1 2.4 1S8.6 14 9.8 14s1.2 1 2.4 1 1.2-1 2.4-1 1.2 1 2.4 1 1.2-1 2.4-1v3c-1.2 0-1.2 1-2.4 1s-1.2-1-2.4-1-1.2 1-2.4 1-1.2-1-2.4-1-1.2 1-2.4 1S6.2 17 5 17z"}
-  ];
-  const ambPanel = document.getElementById("ambient");
-  const ambBtn = document.getElementById("ambientBtn");
-  const channelsEl = document.getElementById("channels");
-  const masterEl = document.getElementById("master");
-  const masterNumEl = document.getElementById("masterNum");
-  const mtIcon = document.getElementById("mtIcon");
-  const ambNote = document.getElementById("amb-note");
-  const AMB_ICON_PLAY="M8 5v14l11-7z", AMB_ICON_PAUSE="M6 5h4v14H6zm8 0h4v14h-4z";
-
-  const ambState = {};
-  const AMB_LS = "bgm_ambient_v1";
-  let ambSaved = {}; try { ambSaved = JSON.parse(localStorage.getItem(AMB_LS)) || {}; } catch(e){}
-  let ambMaster = ambSaved.master != null ? ambSaved.master : 1.0;
-  let ambPlaying = false, ambBuilt = false, ambMissing = 0;
-  // Master can push beyond unity for a much louder ceiling via Web Audio gain.
-  const AMB_MAX_GAIN = 3.0;
-
-  masterEl.value = Math.round(ambMaster*100); masterNumEl.textContent = masterEl.value;
-  masterEl.style.setProperty("--v", masterEl.value + "%");
-
-  function ambPersist(){ const o={master:ambMaster}; Object.keys(ambState).forEach(k=>o[k]=ambState[k].vol); try{ localStorage.setItem(AMB_LS, JSON.stringify(o)); }catch(e){} }
-  // Route each element through a Web Audio gain node the first time we need volume,
-  // so the effective gain can exceed 1.0 (plain <audio>.volume caps at 1.0).
-  function ambEnsureGain(s){
-    if (s.gain || s.noWebAudio) return;
-    const ctx = ac(); if (!ctx) { s.noWebAudio = true; return; }
-    try {
-      s.srcNode = ctx.createMediaElementSource(s.audio);
-      s.gain = ctx.createGain();
-      s.srcNode.connect(s.gain); s.gain.connect(ctx.destination);
-      s.audio.volume = 1; // element at unity; gain node does the real work
-    } catch(e) { s.noWebAudio = true; }
+  /* ---------------- cover-reactive ambience ----------------
+     Sample the dominant color of the playing cover and softly tint the deck
+     backdrop + disc glow to match. Runs only while a disc is on the deck. */
+  const stageEl = document.getElementById("stage");
+  function applyCoverAmbience(url){
+    if (!url) return;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const c = document.createElement("canvas");
+        const s = 24; c.width = s; c.height = s;
+        const ctx = c.getContext("2d");
+        ctx.drawImage(img, 0, 0, s, s);
+        const d = ctx.getImageData(0, 0, s, s).data;
+        let r=0,g=0,b=0,n=0;
+        for (let i=0;i<d.length;i+=4){
+          // skip near-black/near-white so we get a real hue
+          const rr=d[i],gg=d[i+1],bb=d[i+2];
+          const mx=Math.max(rr,gg,bb),mn=Math.min(rr,gg,bb);
+          if (mx<24 || mn>235) continue;
+          r+=rr; g+=gg; b+=bb; n++;
+        }
+        if (!n){ return; }
+        r=Math.round(r/n); g=Math.round(g/n); b=Math.round(b/n);
+        setAmbience(r,g,b);
+      } catch(e){ /* cross-origin canvas may be blocked; skip silently */ }
+    };
+    img.src = url;
   }
-  function ambApply(k){
-    const s = ambState[k]; if(!s || !s.audio) return;
-    const target = s.vol * ambMaster * AMB_MAX_GAIN;
-    ambEnsureGain(s);
-    if (s.gain) { s.gain.gain.value = Math.max(0, target); }
-    else { s.audio.volume = Math.max(0, Math.min(1, s.vol * ambMaster)); } // fallback, capped at 1
+  function setAmbience(r,g,b){
+    // A soft radial wash behind the deck + a matching glow on the spinning disc.
+    stageEl.style.background =
+      `radial-gradient(70% 70% at 50% 38%, rgba(${r},${g},${b},.34), rgba(0,0,0,.82) 72%), rgba(0,0,0,.6)`;
+    if (stageDisc) stageDisc.style.boxShadow = `0 10px 26px rgba(0,0,0,.7), 0 0 60px rgba(${r},${g},${b},.5)`;
   }
-  function ambSetIcon(){ mtIcon.innerHTML = `<path d="${ambPlaying?AMB_ICON_PAUSE:AMB_ICON_PLAY}"/>`; }
-
-  function buildAmbient(){
-    if (ambBuilt) return; ambBuilt = true; ambMissing = 0;
-    AMB_CHANNELS.forEach(ch => {
-      const vol = ambSaved[ch.key] != null ? ambSaved[ch.key] : 0;
-      const row = document.createElement("div");
-      row.className = "chan off" + (vol===0 ? "" : "");
-      row.innerHTML = `
-        <div class="icon"><svg viewBox="0 0 24 24"><path d="${ch.path}"/></svg></div>
-        <div class="meta"><div class="name">${ch.name}</div><div class="hint">Loading…</div></div>
-        <input type="range" min="0" max="100" value="${Math.round(vol*100)}">
-        <div class="vwrap"><div class="vbars"></div><div class="vnum">${Math.round(vol*100)}</div></div>`;
-      channelsEl.appendChild(row);
-      const slider = row.querySelector("input"), vnum = row.querySelector(".vnum"), hint = row.querySelector(".hint"), vbars = row.querySelector(".vbars");
-      // build 5 LED segments
-      for (let b=0;b<5;b++){ const seg=document.createElement("span"); vbars.appendChild(seg); }
-      function paintBars(pct){
-        const lit = Math.ceil((pct/100)*5);
-        vbars.querySelectorAll("span").forEach((s,idx)=> s.classList.toggle("on", idx < lit));
-      }
-      paintBars(Math.round(vol*100));
-
-      const audio = new Audio(); audio.loop = true; audio.preload = "auto"; audio.src = ch.file;
-      let available = false;
-      audio.addEventListener("canplaythrough", ()=>{ available=true; row.classList.remove("missing"); hint.textContent="Ready"; }, {once:true});
-      audio.addEventListener("error", ()=>{ available=false; row.classList.add("missing"); hint.innerHTML=`Add <code>${ch.file}</code>`; ambMissing++; refreshNote(); });
-
-      slider.style.setProperty("--v", slider.value + "%");
-      slider.addEventListener("input", ()=>{
-        const v = slider.value/100; ambState[ch.key].vol = v; vnum.textContent = slider.value;
-        slider.style.setProperty("--v", slider.value + "%");
-        paintBars(+slider.value);
-        row.classList.toggle("off", v===0);
-        ambApply(ch.key);
-        if (v>0 && available && audio.paused && ambPlaying) audio.play().catch(()=>{});
-        ambPersist();
-      });
-      ambState[ch.key] = { audio, vol, get available(){return available;}, row };
-    });
-    ambSetIcon();
-  }
-  function refreshNote(){
-    ambNote.textContent = ambMissing ? `Add loops to the audio/ folder to enable ${ambMissing} silent layer${ambMissing>1?"s":""}.` : "";
+  function clearAmbience(){
+    stageEl.style.background = "";
+    if (stageDisc) stageDisc.style.boxShadow = "";
   }
 
-  masterEl.addEventListener("input", ()=>{
-    ambMaster = masterEl.value/100; masterNumEl.textContent = masterEl.value;
-    masterEl.style.setProperty("--v", masterEl.value + "%");
-    Object.keys(ambState).forEach(ambApply); ambPersist();
-  });
-  document.getElementById("masterToggle").addEventListener("click", ()=>{
-    sfx.tick();
-    if (ambPlaying){ ambPlaying=false; ambSetIcon(); Object.keys(ambState).forEach(k=>ambState[k].audio.pause()); }
-    else { ambPlaying=true; ambSetIcon(); Object.keys(ambState).forEach(k=>{ ambApply(k); const s=ambState[k]; if(s.vol>0&&s.available) s.audio.play().catch(()=>{}); }); }
-  });
-  ambBtn.addEventListener("click", ()=>{
-    sfx.tick();
-    buildAmbient();
-    const showing = ambPanel.style.display !== "none";
-    ambPanel.style.display = showing ? "none" : "";
-    ambBtn.classList.toggle("active", !showing);
-    if (!showing) { refreshNote(); ambPanel.scrollIntoView({behavior:"smooth", block:"nearest"}); }
-  });
 
   /* ---------------- account + cloud sync (Supabase) ---------------- */
   const SB_URL = (window.BGM_CONFIG && window.BGM_CONFIG.SUPABASE_URL) || "";
@@ -1276,6 +1263,42 @@
     ids.forEach(k => { if ((listenData[k]||0) > topSecs){ topSecs = listenData[k]; topId = k; } });
     const topTrack = topId ? tracks.find(t=>t.id===topId) : null;
     document.getElementById("statTop").textContent = topTrack ? topTrack.title : (topId ? "—" : "Nothing yet");
+
+    // streak
+    const streak = currentStreak();
+    document.getElementById("statStreak").textContent = streak + (streak===1 ? " day" : " days");
+
+    // hourly sparkline
+    const spark = document.getElementById("statSpark");
+    const max = Math.max(1, ...meta.hours);
+    spark.innerHTML = "";
+    let peakHour = 0, peakVal = -1;
+    meta.hours.forEach((v,h)=>{ if (v>peakVal){ peakVal=v; peakHour=h; } });
+    meta.hours.forEach((v,h)=>{
+      const bar = document.createElement("span");
+      bar.style.height = Math.round((v/max)*100) + "%";
+      if (v>0 && h===peakHour) bar.classList.add("peak");
+      spark.appendChild(bar);
+    });
+
+    // habit-aware greeting
+    document.getElementById("statGreeting").innerHTML = buildGreeting(total, streak, peakVal>0 ? peakHour : null);
+  }
+
+  // A warm, human line that reads your habits back to you.
+  function buildGreeting(totalSecs, streak, peakHour){
+    const name = currentUser ? firstNameFromEmail(currentUser.email) : "you";
+    const hour = new Date().getHours();
+    const partOfDay = hour<5 ? "late night" : hour<12 ? "morning" : hour<17 ? "afternoon" : hour<22 ? "evening" : "late night";
+    const bits = [];
+    if (streak >= 2) bits.push(`You're on a <b>${streak}-day</b> streak`);
+    else if (totalSecs === 0) bits.push(`Welcome, <b>${name}</b> — pick a disc to begin`);
+    else bits.push(`Good ${partOfDay}, <b>${name}</b>`);
+    if (peakHour != null){
+      const label = peakHour===0 ? "midnight" : peakHour<12 ? peakHour+"am" : peakHour===12 ? "noon" : (peakHour-12)+"pm";
+      bits.push(`you listen most around <b>${label}</b>`);
+    }
+    return bits.join(" · ") + ".";
   }
 
   const accountEnabled = !!(SB_URL && SB_KEY && window.supabase);
@@ -1288,11 +1311,13 @@
   function setAuthMsg(m, isErr){ authMsg.textContent = m||""; authMsg.classList.toggle("err", !!isErr); }
   function openAuth(){
     if (!accountEnabled) {
-      authTitle.textContent = "Account";
-      authSub.textContent = "Cloud accounts aren't set up for this site yet. Your history is still saved on this device.";
+      // No cloud configured — still show the on-device dashboard.
+      authTitle.textContent = "Your Deck";
+      authSub.textContent = "Stats saved on this device.";
       authEmail.style.display = authPass.style.display = "none";
       authActions.style.display = "none";
-      authStats.classList.remove("show");
+      renderLifetimeStats();
+      authStats.classList.add("show");
       authOverlay.classList.add("open");
       return;
     }
@@ -1303,13 +1328,16 @@
       authEmail.style.display = authPass.style.display = "none";
       renderLifetimeStats();
       authStats.classList.add("show");
+      authActions.style.display = "";
       authActions.innerHTML = '<button class="btn-metal" id="authSignOut" style="flex:1;justify-content:center;">Sign out</button>';
       document.getElementById("authSignOut").addEventListener("click", doSignOut);
     } else {
-      authTitle.textContent = "Account";
-      authSub.textContent = "Sign in to sync your listening history across devices.";
+      authTitle.textContent = "Your Deck";
+      authSub.textContent = "Stats saved on this device — sign in to sync everywhere.";
       authEmail.style.display = authPass.style.display = "";
-      authStats.classList.remove("show");
+      authActions.style.display = "";
+      renderLifetimeStats();
+      authStats.classList.add("show");
     }
     authOverlay.classList.add("open");
   }
