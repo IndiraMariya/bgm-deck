@@ -314,6 +314,7 @@
 
   .deck-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .deck-top .lcd {
+    position: relative;
     flex: 1; margin-right: 14px; min-width: 0;
     font-family: var(--cond); letter-spacing: 0.06em;
     padding: 10px 14px; border-radius: 7px;
@@ -322,7 +323,31 @@
     color: var(--accent); text-shadow: 0 0 7px var(--accent-glow);
     overflow: hidden;
   }
-  .deck-top .lcd .marquee { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+  /* glassy CRT scanlines + top sheen over the LCD */
+  .deck-top .lcd .lcd-scan {
+    position: absolute; inset: 0; pointer-events: none; z-index: 2; border-radius: 7px;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, rgba(255,255,255,.10), transparent 40%);
+    mix-blend-mode: overlay; opacity: .6;
+  }
+  /* mini equalizer bars — the quintessential 2000s player touch */
+  .deck-top .lcd .lcd-eq {
+    position: absolute; right: 12px; top: 10px; z-index: 3;
+    display: flex; align-items: flex-end; gap: 2px; height: 14px; opacity: 0; transition: opacity .3s ease;
+  }
+  .deck-top .lcd.playing .lcd-eq { opacity: .9; }
+  .deck-top .lcd .lcd-eq span {
+    width: 3px; height: 4px; background: var(--accent); border-radius: 1px; box-shadow: 0 0 5px var(--accent-glow);
+  }
+  @keyframes eqbar { 0%,100%{ height: 3px; } 50%{ height: 14px; } }
+  .deck-top .lcd.playing .lcd-eq span { animation: eqbar .9s ease-in-out infinite; }
+  .deck-top .lcd.playing .lcd-eq span:nth-child(1){ animation-duration:.7s; }
+  .deck-top .lcd.playing .lcd-eq span:nth-child(2){ animation-duration:1.1s; }
+  .deck-top .lcd.playing .lcd-eq span:nth-child(3){ animation-duration:.6s; }
+  .deck-top .lcd.playing .lcd-eq span:nth-child(4){ animation-duration:1.3s; }
+  .deck-top .lcd.playing .lcd-eq span:nth-child(5){ animation-duration:.85s; }
+  .deck-top .lcd .marquee { position: relative; z-index: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; padding-right: 28px; }
   /* when a title is too long, scroll it instead of clipping */
   .deck-top .lcd .marquee.scroll { text-overflow: clip; }
   .deck-top .lcd .marquee.scroll span { display: inline-block; padding-right: 40px; animation: marquee 12s linear infinite; }
@@ -483,7 +508,7 @@
   }
   /* Idle breathing glow on the tray so the deck never feels dead (no rotation,
      so it doesn't fight the angle-freeze on pause). */
-  @keyframes trayBreath { 0%,100%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 22px rgba(255,255,255,.03);} 50%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 34px var(--accent-glow);} }
+  @keyframes trayBreath { 0%,100%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 18px rgba(255,255,255,.02);} 50%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 22px rgba(255,255,255,.05);} }
   .stage.open .tray { animation: trayBreath 5.5s ease-in-out infinite; }
   /* soft reflection of the disc on the tray floor */
   .tray .reflection {
@@ -707,6 +732,8 @@
     <div class="deck">
       <div class="deck-top">
         <div class="lcd">
+          <div class="lcd-scan"></div>
+          <div class="lcd-eq" id="lcdEq"><span></span><span></span><span></span><span></span><span></span></div>
           <div class="marquee" id="lcd-title">No disc</div>
           <div class="state" id="lcd-state">Stopped</div>
         </div>
@@ -883,18 +910,27 @@
 
   /* ---- listening-time tracking ---- */
   const LISTEN_KEY = "bgm_listen_seconds_v1";
-  const RESUME_KEY = "bgm_resume_v1";
+  const RESUME_KEY = "bgm_resume_v2";
   let listenData = {};
   try { listenData = JSON.parse(localStorage.getItem(LISTEN_KEY)) || {}; } catch (e) { listenData = {}; }
-  let resumePoint = null; // { id, position }
-  try { resumePoint = JSON.parse(localStorage.getItem(RESUME_KEY)) || null; } catch (e) { resumePoint = null; }
+  // Per-mix resume positions: { [videoId]: seconds }. So ANY mix resumes where
+  // you left it, not just the most recent one.
+  let resumeMap = {};
+  try {
+    const raw = JSON.parse(localStorage.getItem(RESUME_KEY));
+    if (raw && typeof raw === "object") resumeMap = raw;
+    // migrate old single-point format {id, position}
+    const old = JSON.parse(localStorage.getItem("bgm_resume_v1"));
+    if (old && old.id) resumeMap[old.id] = old.position;
+  } catch (e) { resumeMap = {}; }
   function saveListen() {
     try { localStorage.setItem(LISTEN_KEY, JSON.stringify(listenData)); } catch (e) {}
     cloudSyncSoon();
   }
   function saveResume(id, position) {
-    resumePoint = { id, position: Math.floor(position||0) };
-    try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumePoint)); } catch(e){}
+    if (!id) return;
+    resumeMap[id] = Math.floor(position||0);
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumeMap)); } catch(e){}
     cloudSyncSoon();
   }
   function addSeconds(id, s) { if (id && s) listenData[id] = (listenData[id] || 0) + s; }
@@ -1182,6 +1218,7 @@
     mpPpIcon.innerHTML = `<path d="${p?ICON_PAUSE:ICON_PLAY}"/>`;
     stageDisc.classList.toggle("spinning", p);
     miniPlayer.classList.toggle("playing", p);
+    document.querySelector(".deck-top .lcd").classList.toggle("playing", p);
   }
 
   function playIndex(i){
@@ -1189,7 +1226,7 @@
     if (!apiReady){ pendingIndex=i; return; }
     current=i; const t=tracks[i];
     // If we have a saved resume point for this exact mix, queue a seek to it.
-    pendingResumeSeek = (resumePoint && resumePoint.id === t.id && resumePoint.position > 5) ? resumePoint.position : 0;
+    pendingResumeSeek = (resumeMap[t.id] && resumeMap[t.id] > 5) ? resumeMap[t.id] : 0;
     player.loadVideoById(t.id);
     stageArt.src = coverUrl(t, "hqdefault");
     mpArt.src = coverUrl(t, "mqdefault");
@@ -1307,7 +1344,7 @@
   const discFlip = document.getElementById("discFlip");
   const bsideTitle = document.getElementById("bsideTitle");
   const bsideStats = document.getElementById("bsideStats");
-  let flipped = false, dragActive = false;
+  let flipped = false;
   function fillBside(){
     if (current < 0) return;
     const t = tracks[current];
@@ -1321,7 +1358,6 @@
       `<div>last: <b>${last}</b></div>`;
   }
   discFlip.addEventListener("click", (e)=>{
-    if (dragActive) return;            // don't flip if the user was scratching
     if (current < 0) return;
     flipped = !flipped;
     if (flipped){ fillBside(); }
@@ -1329,39 +1365,6 @@
     sfx.tick();
   });
 
-  /* ---------------- scratch to seek ---------------- */
-  // Drag the disc like a turntable: horizontal drag scrubs playback.
-  (function(){
-    let startX = 0, startTime = 0, moved = 0;
-    function down(e){
-      if (flipped || !apiReady || current<0 || !player.getDuration) return;
-      const dur = player.getDuration() || 0; if (!dur) return;
-      dragActive = false; moved = 0;
-      startX = (e.touches ? e.touches[0].clientX : e.clientX);
-      startTime = player.getCurrentTime() || 0;
-      window.addEventListener("mousemove", move); window.addEventListener("mouseup", up);
-      window.addEventListener("touchmove", move, {passive:false}); window.addEventListener("touchend", up);
-    }
-    function move(e){
-      const x = (e.touches ? e.touches[0].clientX : e.clientX);
-      const dx = x - startX; moved = Math.abs(dx);
-      if (moved > 4){ dragActive = true; discFlip.style.cursor = "ew-resize"; if (e.cancelable) e.preventDefault(); }
-      const dur = player.getDuration() || 0;
-      // full tray width ~ scrub the whole track; tune sensitivity here
-      const seconds = startTime + (dx / 260) * Math.min(dur, 3600);
-      const target = Math.max(0, Math.min(dur, seconds));
-      player.seekTo(target, true); updateProgress();
-    }
-    function up(){
-      discFlip.style.cursor = "";
-      window.removeEventListener("mousemove", move); window.removeEventListener("mouseup", up);
-      window.removeEventListener("touchmove", move); window.removeEventListener("touchend", up);
-      // clear the drag flag on the next tick so the click handler can read it first
-      setTimeout(()=>{ dragActive = false; }, 0);
-    }
-    discFlip.addEventListener("mousedown", down);
-    discFlip.addEventListener("touchstart", down, {passive:true});
-  })();
   document.getElementById("ejectBtn").addEventListener("click", ()=>{
     sfx.eject();
     if (apiReady) player.pauseVideo();
@@ -1476,10 +1479,10 @@
     img.src = url;
   }
   function setAmbience(r,g,b){
-    // A soft radial wash behind the deck + a matching glow on the spinning disc.
+    // A very subtle wash behind the deck + a soft glow on the disc — a hint, not a halo.
     stageEl.style.background =
-      `radial-gradient(70% 70% at 50% 38%, rgba(${r},${g},${b},.34), rgba(0,0,0,.82) 72%), rgba(0,0,0,.6)`;
-    if (stageDisc) stageDisc.style.boxShadow = `0 10px 26px rgba(0,0,0,.7), 0 0 60px rgba(${r},${g},${b},.5)`;
+      `radial-gradient(60% 60% at 50% 40%, rgba(${r},${g},${b},.12), rgba(0,0,0,.86) 70%), rgba(0,0,0,.72)`;
+    if (stageDisc) stageDisc.style.boxShadow = `0 10px 26px rgba(0,0,0,.7), 0 0 26px rgba(${r},${g},${b},.22)`;
   }
   function clearAmbience(){
     stageEl.style.background = "";
@@ -1640,7 +1643,13 @@
         Object.keys(data.stats).forEach(id => { listenData[id] = Math.max(listenData[id]||0, data.stats[id]||0); });
         try { localStorage.setItem(LISTEN_KEY, JSON.stringify(listenData)); } catch(e){}
       }
-      if (data && data.resume) { resumePoint = data.resume; try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumePoint)); } catch(e){} }
+      // resume: cloud may hold old single-point {id,position} or the new map
+      if (data && data.resume) {
+        const r = data.resume;
+        if (r.id) { resumeMap[r.id] = r.position; }         // legacy shape
+        else { Object.assign(resumeMap, r); }                // new map
+        try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumeMap)); } catch(e){}
+      }
       cloudPush();
     } catch(e){}
   }
@@ -1653,7 +1662,7 @@
     if (!sb || !currentUser) return;
     try {
       await sb.from("bgm_stats").upsert({
-        user_id: currentUser.id, stats: listenData, resume: resumePoint, updated_at: new Date().toISOString()
+        user_id: currentUser.id, stats: listenData, resume: resumeMap, updated_at: new Date().toISOString()
       }, { onConflict: "user_id" });
     } catch(e){}
   }

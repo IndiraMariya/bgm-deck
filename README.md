@@ -1,9 +1,12 @@
 # bgm deck
 
-![bgm deck](screenshot.jpeg)
+<p align="center">
+  <img src="shot1.jpeg" width="49%" alt="bgm deck">
+  <img src="shot2.jpeg" width="49%" alt="bgm deck now playing">
+</p>
 
 A brushed-metal CD player for the web. It turns a public YouTube playlist into
-spinning CDs you can play, with an inline ambient sound mixer, light/dark modes,
+spinning CDs you can play, with light/dark modes,
 and listening-time tracking. Single static page — no build step, no backend.
 
 Live at **https://bgms.studio**
@@ -11,11 +14,11 @@ Live at **https://bgms.studio**
 ## Features
 - Live playlist via the YouTube Data API (falls back to a built-in list).
 - CDs fly into a center-stage deck and spin while playing; pause freezes the angle.
-- Progress bar with seek, and minimize-to-pill so you can browse while playing.
-- "Most Played" rack backed by listening-time tracking.
+- Progress bar with seek, repeat modes, volume, and minimize-to-pill.
+- "Recently Played" and "Most Played" racks backed by listening-time tracking.
+- Flip a disc to its B-side for that mix's stats; discs gain patina as you play them.
 - Optional account (Supabase) that syncs listening stats and a resume point
   across devices. Without it, everything still works and is saved on-device.
-- Inline ambient mixer (Rain / Cafe / Fountain) with lit volume meters.
 - Light and dark brushed-metal themes.
 - Synthesized mechanical button sounds — no audio assets required.
 
@@ -68,13 +71,7 @@ without it and saves stats on the device. To enable sync:
 
    Row-level security ensures each user can only read/write their own row.
 
-## Ambient audio
-The mixer loads loop files from an `audio/` folder:
-`audio/rain.mp3`, `audio/cafe.mp3`, `audio/ocean.wav` (Fountain).
-Missing files show a hint and stay silent. Pixabay and CC0 Freesound have suitable loops.
-
 ## Files
 - `index.html` — the app.
 - `config.example.js` — config template; copy to `config.js` and add your keys.
-- `audio/` — ambient loop files.
 - `favicon.svg` — animated LED icon.
