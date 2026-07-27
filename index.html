@@ -461,6 +461,10 @@
   .transport button.big { width: 62px; height: 62px; border-color: var(--accent-deep); }
   .transport button.big { background: radial-gradient(circle at 50% 30%, #2b93c2, #14607f); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 0 16px var(--accent-glow), 0 3px 8px rgba(0,0,0,.6); }
   .transport button.big svg { width: 22px; height: 22px; fill: #eaf7ff; }
+  /* lit state for the repeat toggle */
+  .transport button.on { border-color: var(--accent-deep); box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 0 12px var(--accent-glow); }
+  .transport button.on svg { fill: var(--accent); filter: drop-shadow(0 0 3px var(--accent-glow)); }
+  .transport button .rep-one { position: absolute; font-family: var(--cond); font-size: 9px; font-weight: 700; }
 
   /* volume row under the transport */
   .volume-row { display: flex; align-items: center; gap: 12px; margin: 18px auto 0; max-width: 300px; }
@@ -659,6 +663,7 @@
         <div class="ptimes"><span id="pcur">0:00</span><span id="pdur">0:00</span></div>
       </div>
       <div class="transport">
+        <button id="repeatBtn" title="Repeat: off"><svg id="repeatIcon" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg></button>
         <button id="prevBtn" title="Previous"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
         <button class="big" id="playPauseBtn" title="Play / Pause"><svg id="ppIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
         <button id="nextBtn" title="Next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
@@ -1028,7 +1033,11 @@
     });
   };
   function onState(e){
-    if (e.data===YT.PlayerState.ENDED){ stopTick(); next(); }
+    if (e.data===YT.PlayerState.ENDED){
+      stopTick();
+      if (repeatMode === "one"){ try{ player.seekTo(0, true); player.playVideo(); }catch(e){} }
+      else { autoAdvance(); }
+    }
     if (e.data===YT.PlayerState.PLAYING){
       // Apply a queued resume seek once, right after playback actually starts.
       if (pendingResumeSeek > 0){ const p=pendingResumeSeek; pendingResumeSeek=0; try{ player.seekTo(p, true); }catch(e){} }
@@ -1068,6 +1077,13 @@
   }
   function next(){ if (tracks.length) flyAndPlay((current+1)%tracks.length, grid.querySelectorAll(".disc")[(current+1)%tracks.length]); }
   function prev(){ if (tracks.length){ const p=(current-1+tracks.length)%tracks.length; flyAndPlay(p, grid.querySelectorAll(".disc")[p]); } }
+  // Called when a mix ends on its own. "all" wraps; "off" stops after the last mix.
+  function autoAdvance(){
+    if (!tracks.length) return;
+    const atEnd = current >= tracks.length - 1;
+    if (atEnd && repeatMode !== "all"){ setPlayIcon(false); lcdState.textContent="Stopped"; return; }
+    next();
+  }
   function togglePlay(){
     if (!apiReady || current<0){ flyAndPlay(0, grid.querySelectorAll(".disc")[0]); return; }
     const s=player.getPlayerState();
@@ -1089,10 +1105,16 @@
   const ICON_VOL  = "M3 10v4h4l5 5V5L7 10H3zm13.5 2a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z";
   const ICON_MUTE = "M3 10v4h4l5 5V5L7 10H3zm18.3-1.3L20 7.4 17.4 10 14.8 7.4l-1.3 1.3L16 11.3l-2.6 2.6 1.3 1.3L17.4 12.6 20 15.2l1.3-1.3L18.7 11.3z";
   function saveVol(){ try{ localStorage.setItem(VOL_KEY, JSON.stringify({level:volLevel, muted:volMuted})); }catch(e){} }
+  // Human loudness is logarithmic, so a linear slider feels top-heavy. Map the
+  // slider position through an exponential curve for an even-feeling sweep.
+  function perceptualVolume(pos){
+    const p = Math.max(0, Math.min(1, pos/100));
+    return Math.round(Math.pow(p, 2.2) * 100);
+  }
   function applyVolume(){
     if (!apiReady || !player.setVolume) return;
     if (volMuted || volLevel === 0){ player.mute(); }
-    else { player.unMute(); player.setVolume(volLevel); }
+    else { player.unMute(); player.setVolume(perceptualVolume(volLevel)); }
     volSlider.value = volMuted ? 0 : volLevel;
     volSlider.style.setProperty("--v", (volMuted ? 0 : volLevel) + "%");
     volNum.textContent = volMuted ? 0 : volLevel;
@@ -1111,6 +1133,28 @@
     volMuted = !volMuted;
     if (!volMuted && volLevel === 0) volLevel = 60; // unmuting from zero restores an audible level
     applyVolume(); saveVol();
+  });
+
+  /* ---------------- repeat (off -> all -> one) ---------------- */
+  const REPEAT_KEY = "bgm_repeat_v1";
+  const repeatBtn = document.getElementById("repeatBtn");
+  const repeatIcon = document.getElementById("repeatIcon");
+  const REPEAT_PATH = "M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z";
+  let repeatMode = "off";
+  try { repeatMode = localStorage.getItem(REPEAT_KEY) || "off"; } catch(e){}
+  function renderRepeat(){
+    repeatBtn.classList.toggle("on", repeatMode !== "off");
+    const label = repeatMode==="one" ? "Repeat: this mix" : repeatMode==="all" ? "Repeat: all mixes" : "Repeat: off";
+    repeatBtn.title = label;
+    // repeat-one shows a small "1" badge on the loop glyph
+    repeatIcon.innerHTML = `<path d="${REPEAT_PATH}"/>` + (repeatMode==="one" ? '<text class="rep-one" x="12" y="14" text-anchor="middle" fill="currentColor" style="font:700 8px sans-serif">1</text>' : "");
+  }
+  renderRepeat();
+  repeatBtn.addEventListener("click", ()=>{
+    sfx.tick();
+    repeatMode = repeatMode==="off" ? "all" : repeatMode==="all" ? "one" : "off";
+    try { localStorage.setItem(REPEAT_KEY, repeatMode); } catch(e){}
+    renderRepeat();
   });
   document.getElementById("ejectBtn").addEventListener("click", ()=>{
     sfx.eject();
