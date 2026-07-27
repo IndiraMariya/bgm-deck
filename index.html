@@ -275,6 +275,17 @@
 
   .empty { grid-column: 1/-1; text-align: center; padding: 70px 20px; color: var(--muted); font-family: var(--cond); letter-spacing: 0.1em; text-transform: uppercase; }
 
+  /* loading skeleton: ghost discs with a sheen sweep */
+  @keyframes skelSweep { 0%{background-position:-150% 0} 100%{background-position:250% 0} }
+  .case.skel { pointer-events: none; }
+  .skel-disc, .skel-line {
+    background: linear-gradient(100deg, var(--metal-2) 30%, var(--panel-hi) 50%, var(--metal-2) 70%);
+    background-size: 250% 100%;
+    animation: skelSweep 1.4s ease-in-out infinite;
+  }
+  .skel-disc { width: 100%; aspect-ratio: 1/1; border-radius: 50%; box-shadow: var(--shadow); }
+  .skel-line { height: 12px; border-radius: 6px; margin: 14px auto 0; width: 70%; }
+
   /* ---------- Center-stage overlay player ---------- */
   .stage {
     position: fixed; inset: 0; z-index: 60;
@@ -311,6 +322,10 @@
     overflow: hidden;
   }
   .deck-top .lcd .marquee { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 15px; }
+  /* when a title is too long, scroll it instead of clipping */
+  .deck-top .lcd .marquee.scroll { text-overflow: clip; }
+  .deck-top .lcd .marquee.scroll span { display: inline-block; padding-right: 40px; animation: marquee 12s linear infinite; }
+  @keyframes marquee { 0%{ transform: translateX(0); } 100%{ transform: translateX(-50%); } }
   .deck-top .lcd .state { font-size: 10px; letter-spacing: 0.24em; color: var(--accent-deep); text-transform: uppercase; margin-top: 2px; }
   .eject {
     width: 40px; height: 40px; border-radius: 8px; cursor: pointer; flex-shrink: 0;
@@ -426,6 +441,17 @@
   /* Always animating; we pause the animation to freeze the current angle. */
   .stage-disc { animation: discspin 5s linear infinite; animation-play-state: paused; }
   .stage-disc.spinning { animation-play-state: running; }
+  /* Idle breathing glow on the tray so the deck never feels dead (no rotation,
+     so it doesn't fight the angle-freeze on pause). */
+  @keyframes trayBreath { 0%,100%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 22px rgba(255,255,255,.03);} 50%{ box-shadow: inset 0 6px 20px rgba(0,0,0,.8), inset 0 -2px 4px rgba(255,255,255,.06), 0 0 0 1px rgba(255,255,255,.05), 0 0 34px var(--accent-glow);} }
+  .stage.open .tray { animation: trayBreath 5.5s ease-in-out infinite; }
+  /* soft reflection of the disc on the tray floor */
+  .tray .reflection {
+    position: absolute; left: 6%; right: 6%; top: 62%; height: 40%;
+    border-radius: 50%; pointer-events: none; z-index: 0;
+    background: radial-gradient(60% 80% at 50% 0%, rgba(255,255,255,.06), transparent 70%);
+    filter: blur(6px); opacity: .6;
+  }
 
   /* progress bar + times */
   .progress { margin: 0 auto 20px; max-width: 300px; }
@@ -625,6 +651,11 @@
 
     <div class="grid" id="grid"></div>
 
+    <section class="rack" id="recent" style="display:none;">
+      <div class="rack-h">Recently Played</div>
+      <div class="rack-row" id="recent-row"></div>
+    </section>
+
     <section class="rack" id="rack" style="display:none;">
       <div class="rack-h">Most Played</div>
       <div class="rack-row" id="rack-row"></div>
@@ -657,6 +688,7 @@
         </div>
         <div class="glare"></div>
         <span class="spindle"></span>
+        <div class="reflection"></div>
       </div>
       <div class="progress" id="progress">
         <div class="pbar"><div class="pfill" id="pfill"></div></div>
@@ -746,6 +778,17 @@
   const stageArt = document.getElementById("stageArt");
   const lcdTitle = document.getElementById("lcd-title");
   const lcdState = document.getElementById("lcd-state");
+  // Set the LCD title, scrolling it as a marquee only when it overflows.
+  function setLcdTitle(title){
+    lcdTitle.classList.remove("scroll");
+    lcdTitle.textContent = title;
+    requestAnimationFrame(()=>{
+      if (lcdTitle.scrollWidth > lcdTitle.clientWidth + 4){
+        lcdTitle.classList.add("scroll");
+        lcdTitle.innerHTML = `<span>${escapeText(title)}</span><span>${escapeText(title)}</span>`;
+      }
+    });
+  }
   const miniPlayer = document.getElementById("miniPlayer");
   const mpArt = document.getElementById("mpArt");
   const mpTitle = document.getElementById("mpTitle");
@@ -926,7 +969,36 @@
     renderRack();
   }
 
+  // Recently played — most recent first, from the last-played timestamps.
+  const recentEl = document.getElementById("recent");
+  const recentRow = document.getElementById("recent-row");
+  function renderRecent(){
+    const items = tracks
+      .map(t => ({ t, ts: meta.last[t.id] || 0 }))
+      .filter(x => x.ts > 0)
+      .sort((a,b) => b.ts - a.ts)
+      .slice(0, 8);
+    if (!items.length){ recentEl.style.display = "none"; return; }
+    recentEl.style.display = "";
+    recentRow.innerHTML = "";
+    items.forEach(x => {
+      const item = document.createElement("div"); item.className = "rack-item";
+      const md = document.createElement("div"); md.className = "mini-disc"; md.style.background = "#111";
+      const im = document.createElement("img");
+      im.src = coverUrl(x.t, "mqdefault");
+      im.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:50%;-webkit-mask:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 16.5%);mask:radial-gradient(circle at 50% 50%,transparent 0 16%,#000 16.5%)";
+      im.addEventListener("error", ()=>{ im.style.display="none"; });
+      md.appendChild(im);
+      const time = document.createElement("div"); time.className="rk-time"; time.textContent = fmtAgo(x.ts);
+      item.appendChild(md); item.appendChild(time);
+      const realIndex = tracks.indexOf(x.t);
+      item.addEventListener("click", ()=>{ flyAndPlay(realIndex, grid.querySelectorAll(".disc")[realIndex]); });
+      recentRow.appendChild(item);
+    });
+  }
+
   function renderRack() {
+    renderRecent();
     const ranked = tracks.map(t => ({t, secs: listenData[t.id]||0})).filter(x=>x.secs>=30)
       .sort((a,b)=>b.secs-a.secs).slice(0,8);
     if (!ranked.length) { rack.style.display="none"; return; }
@@ -963,7 +1035,7 @@
     const t = tracks[i];
     // Prepare the stage disc art up front.
     stageArt.src = coverUrl(t, "hqdefault");
-    lcdTitle.textContent = t.title;
+    setLcdTitle(t.title);
     lcdState.textContent = "Loading";
 
     if (!sourceDisc) { openStageAndPlay(i); return; }
@@ -1068,7 +1140,7 @@
     player.loadVideoById(t.id);
     stageArt.src = coverUrl(t, "hqdefault");
     mpArt.src = coverUrl(t, "mqdefault");
-    lcdTitle.textContent = t.title;
+    setLcdTitle(t.title);
     mpTitle.textContent = t.title;
     lcdState.textContent = "Loading";
     pfill.style.width = "0%"; pcur.textContent = "0:00"; pdur.textContent = t.duration || "0:00";
@@ -1092,7 +1164,21 @@
 
   document.getElementById("playAll").addEventListener("click", ()=> { sfx.press(); flyAndPlay(0, grid.querySelectorAll(".disc")[0]); });
   document.getElementById("nextBtn").addEventListener("click", ()=> { sfx.tick(); next(); });
-  document.getElementById("prevBtn").addEventListener("click", ()=> { sfx.tick(); prev(); });
+  document.getElementById("prevBtn").addEventListener("click", ()=> { sfx.tick(); backButton(); });
+  // Back button: first press restarts the current mix; a quick second press
+  // (within 1.2s) jumps to the previous mix — like most music players.
+  let lastBackPress = 0;
+  function backButton(){
+    const now = Date.now();
+    const nearStart = apiReady && player.getCurrentTime && player.getCurrentTime() < 3;
+    if (now - lastBackPress < 1200 || nearStart){
+      lastBackPress = 0;
+      prev();
+    } else {
+      lastBackPress = now;
+      if (apiReady && player.seekTo){ player.seekTo(0, true); player.playVideo(); }
+    }
+  }
   document.getElementById("playPauseBtn").addEventListener("click", ()=> { sfx.press(); togglePlay(); });
 
   /* ---------------- volume ---------------- */
@@ -1472,9 +1558,19 @@
     } catch(e){}
     loadYT();
     if(!API_KEY){ tracks=TRACKS.slice(); render(); setStatus("Using built-in list (no API key)."); return; }
+    renderSkeleton();
     setStatus("Loading playlist…");
     try{ tracks=await loadFromApi(); render(); setStatus(tracks.length?"":"Loaded but no playable videos."); }
     catch(e){ tracks=TRACKS.slice(); render(); setStatus("Live load failed — showing built-in list. Reason: "+e.message, true); }
+  }
+  // Ghost discs with a metal sheen sweep while the playlist loads.
+  function renderSkeleton(){
+    grid.innerHTML = "";
+    for (let i=0;i<6;i++){
+      const cse = document.createElement("div"); cse.className = "case skel";
+      cse.innerHTML = '<div class="skel-disc"></div><div class="skel-line"></div>';
+      grid.appendChild(cse);
+    }
   }
   init();
 </script>
