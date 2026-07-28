@@ -929,7 +929,19 @@
   }
   function saveResume(id, position) {
     if (!id) return;
-    resumeMap[id] = Math.floor(position||0);
+    position = Math.floor(position||0);
+    // Don't remember a spot in the last 10s (or first 5s) — those cause a
+    // finished/near-finished mix to snap to the end and auto-skip on replay.
+    let dur = 0;
+    try { dur = (apiReady && player.getDuration) ? (player.getDuration()||0) : 0; } catch(e){}
+    if (position < 5 || (dur && position > dur - 10)) { clearResume(id); return; }
+    resumeMap[id] = position;
+    try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumeMap)); } catch(e){}
+    cloudSyncSoon();
+  }
+  function clearResume(id) {
+    if (!id || !(id in resumeMap)) return;
+    delete resumeMap[id];
     try { localStorage.setItem(RESUME_KEY, JSON.stringify(resumeMap)); } catch(e){}
     cloudSyncSoon();
   }
@@ -1195,12 +1207,23 @@
   function onState(e){
     if (e.data===YT.PlayerState.ENDED){
       stopTick();
+      // A finished mix should NOT keep a near-end resume point, or it'll snap
+      // back to the end and instantly re-fire "ended" the next time it plays.
+      if (current>=0) clearResume(tracks[current].id);
       if (repeatMode === "one"){ try{ player.seekTo(0, true); player.playVideo(); }catch(e){} }
       else { autoAdvance(); }
     }
     if (e.data===YT.PlayerState.PLAYING){
-      // Apply a queued resume seek once, right after playback actually starts.
-      if (pendingResumeSeek > 0){ const p=pendingResumeSeek; pendingResumeSeek=0; try{ player.seekTo(p, true); }catch(e){} }
+      // Apply a queued resume seek once, right after playback actually starts —
+      // but never into the last 10s, which would instantly end the track.
+      if (pendingResumeSeek > 0){
+        const p=pendingResumeSeek; pendingResumeSeek=0;
+        try{
+          const dur = player.getDuration ? (player.getDuration()||0) : 0;
+          if (!dur || p < dur - 10) player.seekTo(p, true);
+          else clearResume(tracks[current].id);
+        }catch(e){}
+      }
       applyVolume();
       setPlayIcon(true); lcdState.textContent="Playing"; startTick(); updateProgress();
       if (current>=0) document.title = "♪ " + tracks[current].title;   // now spinning
